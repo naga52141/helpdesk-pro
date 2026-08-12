@@ -1,0 +1,113 @@
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f1f3f9;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+
+.admin-tab {
+  border: none;
+  background: transparent;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.admin-tab.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.admin-panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.admin-add-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.admin-add-form input {
+  flex: 1;
+  max-width: 320px;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.row-edit {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.row-edit input[type="text"] {
+  flex: 1;
+  max-width: 220px;
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.row-edit input[type="number"] {
+  width: 70px;
+  padding: 7px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.btn-tiny {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.btn-tiny:hover {
+  background: #f5f6fa;
+}
+
+.btn-tiny-danger {
+  color: var(--color-error);
+  border-color: rgba(214, 69, 69, 0.3);
+}
+
+.role-select {
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.self-row-note {
+  color: var(--color-muted);
+  font-size: 12px;
+}

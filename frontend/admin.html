@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — Admin</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="app-body">
+  <header class="navbar">
+    <div class="navbar-left">
+      <span class="brand-mark">HD</span>
+      <span class="navbar-title">HelpDesk Pro</span>
+    </div>
+
+    <nav class="navbar-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="tickets.html" class="nav-link">Tickets</a>
+      <a href="analytics.html" class="nav-link staff-only" hidden>Analytics</a>
+      <a href="admin.html" class="nav-link admin-only active" hidden>Admin</a>
+    </nav>
+
+    <div class="navbar-right">
+      <div class="user-chip">
+        <span id="current-user-name" class="user-chip-name"></span>
+        <span id="current-user-role" class="role-chip"></span>
+        <button type="button" id="logout-btn" class="btn-secondary">Logout</button>
+      </div>
+      <a href="new-ticket.html" class="btn-primary btn-new-ticket">+ New Ticket</a>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="dashboard-heading">
+      <h2>Admin</h2>
+      <p class="text-muted">Manage accounts, ticket categories, departments, and SLA targets</p>
+      <p id="admin-error" class="form-error" hidden></p>
+    </div>
+
+    <div id="access-denied" class="access-denied" hidden>
+      <p>Admin settings are available to admins only.</p>
+    </div>
+
+    <div id="admin-content" hidden>
+      <div class="admin-tabs" role="tablist">
+        <button type="button" class="admin-tab active" data-tab="users">Users</button>
+        <button type="button" class="admin-tab" data-tab="categories">Categories</button>
+        <button type="button" class="admin-tab" data-tab="departments">Departments</button>
+        <button type="button" class="admin-tab" data-tab="sla">SLA Rules</button>
+      </div>
+
+      <section class="admin-panel" id="panel-users">
+        <div class="table-wrap">
+          <table class="chart-data-table" id="users-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Role</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel" id="panel-categories" hidden>
+        <form class="admin-add-form" id="category-add-form">
+          <input type="text" id="category-name-input" placeholder="New category name" required />
+          <button type="submit" class="btn-secondary">Add category</button>
+        </form>
+        <p class="form-error" id="category-error" hidden></p>
+        <div class="table-wrap">
+          <table class="chart-data-table" id="categories-table">
+            <thead><tr><th>Name</th><th></th></tr></thead>
+            <tbody id="categories-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel" id="panel-departments" hidden>
+        <form class="admin-add-form" id="department-add-form">
+          <input type="text" id="department-name-input" placeholder="New department name" required />
+          <button type="submit" class="btn-secondary">Add department</button>
+        </form>
+        <p class="form-error" id="department-error" hidden></p>
+        <div class="table-wrap">
+          <table class="chart-data-table" id="departments-table">
+            <thead><tr><th>Name</th><th></th></tr></thead>
+            <tbody id="departments-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel" id="panel-sla" hidden>
+        <p class="form-error" id="sla-error" hidden></p>
+        <div class="table-wrap">
+          <table class="chart-data-table" id="sla-table">
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Response time (hours)</th>
+                <th>Resolution time (hours)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="sla-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
