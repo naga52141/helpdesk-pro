@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — Login</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="login-card">
+      <div class="brand">
+        <span class="brand-mark">HD</span>
+        <h1>HelpDesk Pro</h1>
+      </div>
+      <p class="subtitle">Sign in to manage and track support tickets</p>
+
+      <div class="role-tabs" role="tablist" aria-label="Login role">
+        <button type="button" class="role-tab active" data-role="user">User</button>
+        <button type="button" class="role-tab" data-role="agent">Agent</button>
+        <button type="button" class="role-tab" data-role="admin">Admin</button>
+      </div>
+
+      <form id="login-form" novalidate>
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required />
+
+        <p class="form-error" id="form-error" hidden></p>
+
+        <button type="submit" class="btn-primary">Log in as <span id="role-label">User</span></button>
+      </form>
+
+      <p class="signup-hint">New here? <a href="#" id="register-link">Create an account</a></p>
+    </div>
+  </div>
+
+  <script src="js/login.js"></script>
+</body>
+</html>
