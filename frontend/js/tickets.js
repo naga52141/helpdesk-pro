@@ -1,6 +1,3 @@
-// Ticket data comes from the shared TICKETS array (js/ticket-data.js), loaded before this file.
-const allTickets = TICKETS;
-
 const statusPillClass = {
   "open": "pill-open",
   "in-progress": "pill-in-progress",
@@ -15,14 +12,6 @@ const priorityPillClass = {
   critical: "pill-critical",
 };
 
-const categoryLabel = {
-  hardware: "Hardware",
-  software: "Software",
-  network: "Network",
-  "account-access": "Account Access",
-  other: "Other",
-};
-
 let currentRole = "user";
 
 const searchInput = document.getElementById("search-input");
@@ -34,41 +23,58 @@ const clearBtn = document.getElementById("clear-filters");
 const ticketsBody = document.getElementById("tickets-body");
 const ticketsTitle = document.getElementById("tickets-title");
 const ticketsCount = document.getElementById("tickets-count");
+const errorEl = document.getElementById("tickets-error");
 const adminLink = document.querySelector(".admin-only");
 
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-function baseSetForRole(role) {
-  if (role === "user") {
-    return allTickets.filter((t) => t.mine);
+function buildScopeParams() {
+  const params = new URLSearchParams();
+  const { id: userId } = DEMO_USERS[currentRole];
+  if (currentRole === "user") {
+    params.set("scope", "mine");
+    params.set("userId", userId);
   }
-  return allTickets;
+  return params;
 }
 
-function render() {
-  const search = searchInput.value.trim().toLowerCase();
-  const status = statusFilter.value;
-  const priority = priorityFilter.value;
-  const category = categoryFilter.value;
-  const agent = agentFilter.value;
+function buildFilterQuery() {
+  const params = buildScopeParams();
+  const search = searchInput.value.trim();
+  if (search) params.set("search", search);
+  if (statusFilter.value !== "all") params.set("status", statusFilter.value);
+  if (priorityFilter.value !== "all") params.set("priority", priorityFilter.value);
+  if (categoryFilter.value !== "all") params.set("category", categoryFilter.value);
+  if (agentFilter.value !== "all") params.set("assignedAgent", agentFilter.value);
+  return params.toString();
+}
 
-  const filtered = baseSetForRole(currentRole).filter((t) => {
-    if (search && !t.id.toLowerCase().includes(search) && !t.title.toLowerCase().includes(search)) return false;
-    if (status !== "all" && t.status !== status) return false;
-    if (priority !== "all" && t.priority !== priority) return false;
-    if (category !== "all" && t.category !== category) return false;
-    if (agent !== "all" && t.agent !== agent) return false;
-    return true;
-  });
-
+async function render() {
+  errorEl.hidden = true;
   ticketsTitle.textContent = currentRole === "user" ? "My tickets" : "All tickets";
-  ticketsCount.textContent = `Showing ${filtered.length} of ${baseSetForRole(currentRole).length} tickets`;
 
+  try {
+    const [filtered, base] = await Promise.all([
+      apiFetch(`/tickets?${buildFilterQuery()}`),
+      apiFetch(`/tickets?${buildScopeParams().toString()}`),
+    ]);
+
+    ticketsCount.textContent = `Showing ${filtered.length} of ${base.length} tickets`;
+    renderRows(filtered);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+    ticketsBody.innerHTML = "";
+    ticketsCount.textContent = "";
+  }
+}
+
+function renderRows(tickets) {
   ticketsBody.innerHTML = "";
 
-  if (filtered.length === 0) {
+  if (tickets.length === 0) {
     const row = document.createElement("tr");
     row.className = "empty-row";
     row.innerHTML = `<td colspan="8">No tickets match your filters.</td>`;
@@ -76,17 +82,17 @@ function render() {
     return;
   }
 
-  filtered.forEach((t) => {
+  tickets.forEach((t) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td><a class="ticket-id" href="ticket-detail.html?id=${t.id}">${t.id}</a></td>
+      <td><a class="ticket-id" href="ticket-detail.html?id=${t.displayId}">${t.displayId}</a></td>
       <td>${t.title}</td>
-      <td>${categoryLabel[t.category]}</td>
+      <td>${t.category}</td>
       <td><span class="pill ${priorityPillClass[t.priority]}">${capitalize(t.priority)}</span></td>
       <td><span class="pill ${statusPillClass[t.status]}">${capitalize(t.status.replace("-", " "))}</span></td>
-      <td>${t.agent}</td>
+      <td>${t.assignedAgent || "Unassigned"}</td>
       <td>${t.department}</td>
-      <td>${t.updated}</td>
+      <td>${new Date(t.updatedAt).toLocaleDateString()}</td>
     `;
     ticketsBody.appendChild(row);
   });

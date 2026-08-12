@@ -2,6 +2,8 @@ const requesterField = document.getElementById("requester-field");
 const adminLink = document.querySelector(".admin-only");
 const form = document.getElementById("ticket-form");
 const formError = document.getElementById("form-error");
+const categorySelect = document.getElementById("category");
+const departmentSelect = document.getElementById("department");
 
 function setRole(role) {
   const showRequester = role === "agent" || role === "admin";
@@ -10,27 +12,68 @@ function setRole(role) {
   adminLink.hidden = role !== "admin";
 }
 
-setRole(initRolePreview(setRole));
+async function loadLookups() {
+  try {
+    const [categories, departments] = await Promise.all([
+      apiFetch("/categories"),
+      apiFetch("/departments"),
+    ]);
+    categories.forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      categorySelect.appendChild(opt);
+    });
+    departments.forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.name;
+      departmentSelect.appendChild(opt);
+    });
+  } catch (err) {
+    formError.textContent = err.message;
+    formError.hidden = false;
+  }
+}
 
-form.addEventListener("submit", (event) => {
+setRole(initRolePreview(setRole));
+loadLookups();
+
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const title = document.getElementById("title").value.trim();
   const description = document.getElementById("description").value.trim();
-  const category = document.getElementById("category").value;
+  const categoryId = categorySelect.value;
   const priority = document.getElementById("priority").value;
-  const department = document.getElementById("department").value;
+  const departmentId = departmentSelect.value;
+  const deviceInfo = document.getElementById("device-info").value.trim();
 
-  if (!title || !description || !category || !priority || !department) {
+  if (!title || !description || !categoryId || !priority || !departmentId) {
     formError.textContent = "Please fill in all required fields.";
     formError.hidden = false;
     return;
   }
 
   formError.hidden = true;
-  // Backend isn't connected yet — this just confirms the form works.
-  const fakeId = "T-" + Math.floor(1000 + Math.random() * 9000);
-  console.log("New ticket:", { title, description, category, priority, department });
-  alert(`(Demo) Ticket ${fakeId} created: "${title}"\nBackend not connected yet.`);
-  window.location.href = "dashboard.html";
+
+  try {
+    const ticket = await apiFetch("/tickets", {
+      method: "POST",
+      body: JSON.stringify({
+        title,
+        description,
+        categoryId: Number(categoryId),
+        priority,
+        departmentId: Number(departmentId),
+        createdBy: getCurrentUser().id,
+        deviceInfo: deviceInfo || null,
+      }),
+    });
+    alert(`Ticket ${ticket.displayId} created: "${ticket.title}"`);
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    formError.textContent = err.message;
+    formError.hidden = false;
+  }
 });

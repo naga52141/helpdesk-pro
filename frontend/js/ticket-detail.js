@@ -12,14 +12,6 @@ const priorityPillClass = {
   critical: "pill-critical",
 };
 
-const categoryLabel = {
-  hardware: "Hardware",
-  software: "Software",
-  network: "Network",
-  "account-access": "Account Access",
-  other: "Other",
-};
-
 const slaLabel = {
   breached: "SLA Breached",
   "due-today": "Due Today",
@@ -44,25 +36,52 @@ function statusText(status) {
   return capitalize(status.replace("-", " "));
 }
 
+function computeSlaStatus(ticket) {
+  if (!ticket.slaDueAt) return "on-track";
+  const due = new Date(ticket.slaDueAt);
+
+  if (ticket.status === "resolved" || ticket.status === "closed") {
+    const doneAt = new Date(ticket.resolvedAt || ticket.closedAt || ticket.updatedAt);
+    return doneAt <= due ? "met" : "late";
+  }
+
+  const now = new Date();
+  if (now > due) return "breached";
+  if (due.toDateString() === now.toDateString()) return "due-today";
+  return "on-track";
+}
+
 const params = new URLSearchParams(window.location.search);
-const ticketId = params.get("id");
-const found = TICKETS.find((t) => t.id === ticketId);
+const ticketId = (params.get("id") || "").replace(/^T-/i, "");
 
 const notFoundEl = document.getElementById("not-found");
 const contentEl = document.getElementById("ticket-content");
+const detailErrorEl = document.getElementById("detail-error");
 
-if (!found) {
-  notFoundEl.hidden = false;
-  contentEl.hidden = true;
-} else {
-  notFoundEl.hidden = true;
-  contentEl.hidden = false;
-  runDetailPage(found);
+init();
+
+async function init() {
+  try {
+    const [ticket, agents] = await Promise.all([
+      apiFetch(`/tickets/${ticketId}`),
+      apiFetch("/agents"),
+    ]);
+    notFoundEl.hidden = true;
+    contentEl.hidden = false;
+    runDetailPage(ticket, agents);
+  } catch (err) {
+    if (err.message.includes("404") || err.message === "Ticket not found") {
+      notFoundEl.hidden = false;
+      contentEl.hidden = true;
+    } else {
+      detailErrorEl.textContent = err.message;
+      detailErrorEl.hidden = false;
+    }
+  }
 }
 
-function runDetailPage(originalTicket) {
-  const ticket = { ...originalTicket, comments: [...originalTicket.comments] };
-  const originalSlaStatus = originalTicket.slaStatus;
+function runDetailPage(initialTicket, agents) {
+  let ticket = initialTicket;
   let currentRole = "user";
 
   const els = {
@@ -92,17 +111,24 @@ function runDetailPage(originalTicket) {
     adminLink: document.querySelector(".admin-only"),
   };
 
+  agents.forEach((agent) => {
+    const opt = document.createElement("option");
+    opt.value = agent.id;
+    opt.textContent = agent.name;
+    els.assignSelect.appendChild(opt);
+  });
+
   function renderStaticFields() {
     els.title.textContent = ticket.title;
-    els.id.textContent = ticket.id;
+    els.id.textContent = ticket.displayId;
     els.description.textContent = ticket.description;
-    els.requester.textContent = ticket.requester;
-    els.category.textContent = categoryLabel[ticket.category];
+    els.requester.textContent = `${ticket.requesterName} <${ticket.requesterEmail}>`;
+    els.category.textContent = ticket.category;
     els.department.textContent = ticket.department;
-    els.device.textContent = ticket.deviceInfo;
-    els.attachment.textContent = ticket.attachment || "None";
-    els.created.textContent = ticket.createdAt;
-    els.slaDue.textContent = ticket.slaDueAt;
+    els.device.textContent = ticket.deviceInfo || "N/A";
+    els.attachment.textContent = "None";
+    els.created.textContent = new Date(ticket.createdAt).toLocaleString();
+    els.slaDue.textContent = ticket.slaDueAt ? new Date(ticket.slaDueAt).toLocaleString() : "N/A";
   }
 
   function renderDynamicFields() {
@@ -112,13 +138,14 @@ function runDetailPage(originalTicket) {
     els.priorityPill.textContent = capitalize(ticket.priority);
     els.priorityPill.className = `pill ${priorityPillClass[ticket.priority]}`;
 
-    els.slaPill.textContent = slaLabel[ticket.slaStatus];
-    els.slaPill.className = `pill ${slaPillClass[ticket.slaStatus]}`;
+    const slaStatus = computeSlaStatus(ticket);
+    els.slaPill.textContent = slaLabel[slaStatus];
+    els.slaPill.className = `pill ${slaPillClass[slaStatus]}`;
 
-    els.agent.textContent = ticket.agent;
-    els.updated.textContent = ticket.updated;
+    els.agent.textContent = ticket.assignedAgent || "Unassigned";
+    els.updated.textContent = new Date(ticket.updatedAt).toLocaleString();
 
-    els.assignSelect.value = ticket.agent;
+    els.assignSelect.value = ticket.assignedAgentId || "";
     els.statusSelect.value = ticket.status;
     els.prioritySelect.value = ticket.priority;
 
@@ -146,24 +173,18 @@ function runDetailPage(originalTicket) {
       div.innerHTML = `
         <div class="comment-meta">
           <span><span class="comment-author">${c.author}</span><span class="role-badge role-badge-${c.role}">${capitalize(c.role)}</span></span>
-          <span>${c.time}</span>
+          <span>${new Date(c.createdAt).toLocaleString()}</span>
         </div>
-        <div>${c.text}</div>
+        <div>${c.comment}</div>
       `;
       els.commentsList.appendChild(div);
     });
   }
 
-  function touchUpdatedNow() {
-    ticket.updated = new Date().toISOString().slice(0, 10);
-  }
-
-  function markToday() {
-    ticket.slaStatus = "met";
-  }
-
-  function restoreOriginalSla() {
-    ticket.slaStatus = originalSlaStatus;
+  function renderAll() {
+    renderStaticFields();
+    renderDynamicFields();
+    renderComments();
   }
 
   function applyRoleVisibility() {
@@ -173,67 +194,64 @@ function runDetailPage(originalTicket) {
     els.adminLink.hidden = currentRole !== "admin";
   }
 
+  async function patchTicket(body) {
+    detailErrorEl.hidden = true;
+    try {
+      ticket = await apiFetch(`/tickets/${ticket.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ ...body, changedBy: getCurrentUser().id }),
+      });
+      renderDynamicFields();
+    } catch (err) {
+      detailErrorEl.textContent = err.message;
+      detailErrorEl.hidden = false;
+    }
+  }
+
   document.getElementById("assign-btn").addEventListener("click", () => {
-    ticket.agent = els.assignSelect.value;
-    touchUpdatedNow();
-    renderDynamicFields();
+    const value = els.assignSelect.value;
+    patchTicket({ assignedTo: value ? Number(value) : "" });
   });
 
   document.getElementById("status-btn").addEventListener("click", () => {
-    ticket.status = els.statusSelect.value;
-    if (ticket.status === "resolved" || ticket.status === "closed") {
-      markToday();
-    } else {
-      restoreOriginalSla();
-    }
-    touchUpdatedNow();
-    renderDynamicFields();
+    patchTicket({ status: els.statusSelect.value });
   });
 
   document.getElementById("priority-btn").addEventListener("click", () => {
-    ticket.priority = els.prioritySelect.value;
-    touchUpdatedNow();
-    renderDynamicFields();
+    patchTicket({ priority: els.prioritySelect.value });
   });
 
   document.getElementById("resolve-btn").addEventListener("click", () => {
-    ticket.status = "resolved";
-    markToday();
-    touchUpdatedNow();
-    renderDynamicFields();
+    patchTicket({ status: "resolved" });
   });
 
   document.getElementById("close-btn").addEventListener("click", () => {
-    ticket.status = "closed";
-    markToday();
-    touchUpdatedNow();
-    renderDynamicFields();
+    patchTicket({ status: "closed" });
   });
 
   els.reopenBtn.addEventListener("click", () => {
-    ticket.status = "in-progress";
-    restoreOriginalSla();
-    touchUpdatedNow();
-    renderDynamicFields();
+    patchTicket({ status: "in-progress" });
   });
 
-  document.getElementById("comment-form").addEventListener("submit", (event) => {
+  document.getElementById("comment-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const textarea = document.getElementById("comment-text");
     const text = textarea.value.trim();
     if (!text) return;
 
-    const isAgentOrAdmin = currentRole === "agent" || currentRole === "admin";
-    ticket.comments.push({
-      author: "You",
-      role: isAgentOrAdmin ? "agent" : "user",
-      text,
-      time: "Just now",
-    });
-    textarea.value = "";
-    touchUpdatedNow();
-    renderComments();
-    renderDynamicFields();
+    detailErrorEl.hidden = true;
+    try {
+      const newComment = await apiFetch(`/tickets/${ticket.id}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ userId: getCurrentUser().id, comment: text }),
+      });
+      ticket.comments.push(newComment);
+      textarea.value = "";
+      renderComments();
+    } catch (err) {
+      detailErrorEl.textContent = err.message;
+      detailErrorEl.hidden = false;
+    }
   });
 
   currentRole = initRolePreview((role) => {
@@ -241,8 +259,6 @@ function runDetailPage(originalTicket) {
     applyRoleVisibility();
   });
 
-  renderStaticFields();
-  renderDynamicFields();
-  renderComments();
+  renderAll();
   applyRoleVisibility();
 }

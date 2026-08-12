@@ -34,6 +34,8 @@
   <main class="dashboard-main" id="detail-main">
     <a href="tickets.html" class="back-link">&larr; Back to tickets</a>
 
+    <p id="detail-error" class="form-error" hidden></p>
+
     <div id="not-found" class="recent-section" hidden>
       <p>Ticket not found. <a href="tickets.html">Go back to the ticket queue</a>.</p>
     </div>
@@ -92,10 +94,7 @@
             <label for="assign-select">Assign to</label>
             <div class="control-row">
               <select id="assign-select">
-                <option value="Unassigned">Unassigned</option>
-                <option value="Alex Kim">Alex Kim</option>
-                <option value="Priya Nair">Priya Nair</option>
-                <option value="Jordan Lee">Jordan Lee</option>
+                <option value="">Unassigned</option>
               </select>
               <button type="button" id="assign-btn" class="btn-secondary">Assign</button>
             </div>
@@ -138,7 +137,7 @@
     </div>
   </main>
 
-  <script src="js/ticket-data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/role-preview.js"></script>
   <script src="js/ticket-detail.js"></script>
 </body>

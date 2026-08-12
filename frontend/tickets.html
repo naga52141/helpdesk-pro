@@ -35,6 +35,7 @@
     <div class="dashboard-heading">
       <h2 id="tickets-title">My tickets</h2>
       <p class="text-muted" id="tickets-count"></p>
+      <p id="tickets-error" class="form-error" hidden></p>
     </div>
 
     <section class="filter-bar">
@@ -58,11 +59,11 @@
 
       <select id="filter-category">
         <option value="all">All categories</option>
-        <option value="hardware">Hardware</option>
-        <option value="software">Software</option>
-        <option value="network">Network</option>
-        <option value="account-access">Account Access</option>
-        <option value="other">Other</option>
+        <option value="Hardware">Hardware</option>
+        <option value="Software">Software</option>
+        <option value="Network">Network</option>
+        <option value="Account Access">Account Access</option>
+        <option value="Other">Other</option>
       </select>
 
       <select id="filter-agent">
@@ -97,7 +98,7 @@
     </section>
   </main>
 
-  <script src="js/ticket-data.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/role-preview.js"></script>
   <script src="js/tickets.js"></script>
 </body>
