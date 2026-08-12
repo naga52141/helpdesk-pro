@@ -77,7 +77,6 @@ const greetingEl = document.getElementById("dashboard-greeting");
 const subtitleEl = document.getElementById("dashboard-subtitle");
 const recentTitleEl = document.getElementById("recent-title");
 const adminLink = document.querySelector(".admin-only");
-const roleTabs = document.querySelectorAll(".role-tab");
 
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -119,12 +118,5 @@ function render(role) {
   adminLink.hidden = role !== "admin";
 }
 
-roleTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    roleTabs.forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
-    render(tab.dataset.role);
-  });
-});
-
-render("user");
+const initialRole = initRolePreview(render);
+render(initialRole);

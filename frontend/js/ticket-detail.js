@@ -236,13 +236,9 @@ function runDetailPage(originalTicket) {
     renderDynamicFields();
   });
 
-  document.querySelectorAll(".role-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".role-tab").forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-      currentRole = tab.dataset.role;
-      applyRoleVisibility();
-    });
+  currentRole = initRolePreview((role) => {
+    currentRole = role;
+    applyRoleVisibility();
   });
 
   renderStaticFields();

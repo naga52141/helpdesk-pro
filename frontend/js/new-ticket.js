@@ -1,4 +1,3 @@
-const roleTabs = document.querySelectorAll(".role-tab");
 const requesterField = document.getElementById("requester-field");
 const adminLink = document.querySelector(".admin-only");
 const form = document.getElementById("ticket-form");
@@ -11,15 +10,7 @@ function setRole(role) {
   adminLink.hidden = role !== "admin";
 }
 
-roleTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    roleTabs.forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
-    setRole(tab.dataset.role);
-  });
-});
-
-setRole("user");
+setRole(initRolePreview(setRole));
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();

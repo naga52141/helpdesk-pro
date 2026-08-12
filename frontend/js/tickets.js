@@ -35,7 +35,6 @@ const ticketsBody = document.getElementById("tickets-body");
 const ticketsTitle = document.getElementById("tickets-title");
 const ticketsCount = document.getElementById("tickets-count");
 const adminLink = document.querySelector(".admin-only");
-const roleTabs = document.querySelectorAll(".role-tab");
 
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -107,15 +106,10 @@ clearBtn.addEventListener("click", () => {
   render();
 });
 
-roleTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    roleTabs.forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
-    currentRole = tab.dataset.role;
-    adminLink.hidden = currentRole !== "admin";
-    render();
-  });
+currentRole = initRolePreview((role) => {
+  currentRole = role;
+  adminLink.hidden = currentRole !== "admin";
+  render();
 });
-
 adminLink.hidden = currentRole !== "admin";
 render();
