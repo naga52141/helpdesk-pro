@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body class="app-body">
+  <header class="navbar">
+    <div class="navbar-left">
+      <span class="brand-mark">HD</span>
+      <span class="navbar-title">HelpDesk Pro</span>
+    </div>
+
+    <nav class="navbar-links">
+      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="#" class="nav-link">Tickets</a>
+      <a href="#" class="nav-link">Analytics</a>
+      <a href="#" class="nav-link admin-only" hidden>Users</a>
+    </nav>
+
+    <div class="navbar-right">
+      <div class="role-tabs role-tabs-small" role="tablist" aria-label="Preview role">
+        <button type="button" class="role-tab active" data-role="user">User</button>
+        <button type="button" class="role-tab" data-role="agent">Agent</button>
+        <button type="button" class="role-tab" data-role="admin">Admin</button>
+      </div>
+      <button type="button" class="btn-primary btn-new-ticket">+ New Ticket</button>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="dashboard-heading">
+      <h2 id="dashboard-greeting">Welcome back</h2>
+      <p id="dashboard-subtitle" class="text-muted">Here's what's happening with your tickets</p>
+    </div>
+
+    <section class="stat-grid" id="stat-grid" aria-label="Ticket statistics"></section>
+
+    <section class="recent-section">
+      <div class="recent-header">
+        <h3 id="recent-title">Recent tickets</h3>
+      </div>
+      <div class="table-wrap">
+        <table class="ticket-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tickets-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
