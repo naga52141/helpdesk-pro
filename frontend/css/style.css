@@ -103,7 +103,8 @@ form label {
   color: var(--color-text);
 }
 
-form input {
+form input,
+form select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--color-border);
@@ -112,9 +113,13 @@ form input {
   margin-bottom: 18px;
   outline: none;
   transition: border-color 0.15s ease;
+  font-family: inherit;
+  background: #fff;
+  color: var(--color-text);
 }
 
-form input:focus {
+form input:focus,
+form select:focus {
   border-color: var(--color-primary);
 }
 

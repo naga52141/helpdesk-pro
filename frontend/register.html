@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — Register</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="login-card">
+      <div class="brand">
+        <span class="brand-mark">HD</span>
+        <h1>HelpDesk Pro</h1>
+      </div>
+      <p class="subtitle">Create a user account to submit support tickets</p>
+
+      <form id="register-form" novalidate>
+        <label for="full-name">Full name</label>
+        <input type="text" id="full-name" name="fullName" placeholder="Jane Doe" required />
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required />
+
+        <label for="department">Department</label>
+        <select id="department" name="department" required>
+          <option value="" disabled selected>Select department</option>
+          <option value="it">IT</option>
+          <option value="hr">HR</option>
+          <option value="finance">Finance</option>
+          <option value="operations">Operations</option>
+          <option value="other">Other</option>
+        </select>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required />
+
+        <label for="confirm-password">Confirm password</label>
+        <input type="password" id="confirm-password" name="confirmPassword" placeholder="••••••••" required />
+
+        <p class="form-error" id="form-error" hidden></p>
+
+        <button type="submit" class="btn-primary">Create account</button>
+      </form>
+
+      <p class="signup-hint">Already have an account? <a href="index.html">Log in</a></p>
+    </div>
+  </div>
+
+  <script src="js/register.js"></script>
+</body>
+</html>
