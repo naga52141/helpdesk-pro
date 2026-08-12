@@ -22,10 +22,10 @@
     </nav>
 
     <div class="navbar-right">
-      <div class="role-tabs role-tabs-small" role="tablist" aria-label="Preview role">
-        <button type="button" class="role-tab active" data-role="user">User</button>
-        <button type="button" class="role-tab" data-role="agent">Agent</button>
-        <button type="button" class="role-tab" data-role="admin">Admin</button>
+      <div class="user-chip">
+        <span id="current-user-name" class="user-chip-name"></span>
+        <span id="current-user-role" class="role-chip"></span>
+        <button type="button" id="logout-btn" class="btn-secondary">Logout</button>
       </div>
     </div>
   </header>
@@ -38,11 +38,6 @@
 
     <section class="form-card">
       <form id="ticket-form" novalidate>
-        <div id="requester-field" hidden>
-          <label for="requester">Requester (on behalf of)</label>
-          <input type="text" id="requester" name="requester" placeholder="Name or email of the user" />
-        </div>
-
         <label for="title">Issue title</label>
         <input type="text" id="title" name="title" placeholder="e.g. Can't connect to VPN" required />
 
@@ -96,8 +91,8 @@
     </section>
   </main>
 
+  <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/role-preview.js"></script>
   <script src="js/new-ticket.js"></script>
 </body>
 </html>

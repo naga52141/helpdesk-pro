@@ -12,8 +12,6 @@ const priorityPillClass = {
   critical: "pill-critical",
 };
 
-let currentRole = "user";
-
 const searchInput = document.getElementById("search-input");
 const statusFilter = document.getElementById("filter-status");
 const priorityFilter = document.getElementById("filter-priority");
@@ -24,24 +22,9 @@ const ticketsBody = document.getElementById("tickets-body");
 const ticketsTitle = document.getElementById("tickets-title");
 const ticketsCount = document.getElementById("tickets-count");
 const errorEl = document.getElementById("tickets-error");
-const adminLink = document.querySelector(".admin-only");
-
-function capitalize(word) {
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
-function buildScopeParams() {
-  const params = new URLSearchParams();
-  const { id: userId } = DEMO_USERS[currentRole];
-  if (currentRole === "user") {
-    params.set("scope", "mine");
-    params.set("userId", userId);
-  }
-  return params;
-}
 
 function buildFilterQuery() {
-  const params = buildScopeParams();
+  const params = new URLSearchParams();
   const search = searchInput.value.trim();
   if (search) params.set("search", search);
   if (statusFilter.value !== "all") params.set("status", statusFilter.value);
@@ -53,12 +36,11 @@ function buildFilterQuery() {
 
 async function render() {
   errorEl.hidden = true;
-  ticketsTitle.textContent = currentRole === "user" ? "My tickets" : "All tickets";
 
   try {
     const [filtered, base] = await Promise.all([
       apiFetch(`/tickets?${buildFilterQuery()}`),
-      apiFetch(`/tickets?${buildScopeParams().toString()}`),
+      apiFetch("/tickets"),
     ]);
 
     ticketsCount.textContent = `Showing ${filtered.length} of ${base.length} tickets`;
@@ -112,10 +94,6 @@ clearBtn.addEventListener("click", () => {
   render();
 });
 
-currentRole = initRolePreview((role) => {
-  currentRole = role;
-  adminLink.hidden = currentRole !== "admin";
-  render();
-});
-adminLink.hidden = currentRole !== "admin";
+const session = requireSession();
+ticketsTitle.textContent = session.user.role === "user" ? "My tickets" : "All tickets";
 render();

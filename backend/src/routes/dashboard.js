@@ -1,24 +1,25 @@
 const express = require("express");
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
+const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-// GET /api/dashboard/stats?role=user|agent|admin&userId=X
-router.get("/stats", asyncHandler(async (req, res) => {
-  const { role, userId } = req.query;
+// GET /api/dashboard/stats — scoped by the logged-in user's role, not client-supplied params
+router.get("/stats", requireAuth, asyncHandler(async (req, res) => {
+  const { role, id: userId } = req.user;
 
   let whereClause = "";
   let params = [];
 
-  if (role === "user" && userId) {
+  if (role === "user") {
     whereClause = "WHERE t.created_by = ?";
     params = [userId];
-  } else if (role === "agent" && userId) {
+  } else if (role === "agent") {
     whereClause = "WHERE t.assigned_to = ?";
     params = [userId];
   }
-  // role === "admin" (or missing userId): no filter, org-wide view
+  // role === "admin": no filter, org-wide view
 
   const [[stats]] = await pool.query(
     `SELECT

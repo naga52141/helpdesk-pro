@@ -22,10 +22,10 @@
     </nav>
 
     <div class="navbar-right">
-      <div class="role-tabs role-tabs-small" role="tablist" aria-label="Preview role">
-        <button type="button" class="role-tab active" data-role="user">User</button>
-        <button type="button" class="role-tab" data-role="agent">Agent</button>
-        <button type="button" class="role-tab" data-role="admin">Admin</button>
+      <div class="user-chip">
+        <span id="current-user-name" class="user-chip-name"></span>
+        <span id="current-user-role" class="role-chip"></span>
+        <button type="button" id="logout-btn" class="btn-secondary">Logout</button>
       </div>
       <a href="new-ticket.html" class="btn-primary btn-new-ticket">+ New Ticket</a>
     </div>
@@ -62,8 +62,8 @@
     </section>
   </main>
 
+  <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/role-preview.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

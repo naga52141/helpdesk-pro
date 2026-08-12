@@ -69,32 +69,6 @@ body {
   margin: 6px 0 24px;
 }
 
-.role-tabs {
-  display: flex;
-  background: #f1f3f9;
-  border-radius: 999px;
-  padding: 4px;
-  margin-bottom: 24px;
-}
-
-.role-tab {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 8px 0;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-muted);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.role-tab.active {
-  background: var(--color-primary);
-  color: #fff;
-}
-
 form label {
   display: block;
   font-size: 13px;

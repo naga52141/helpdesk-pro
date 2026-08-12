@@ -15,12 +15,6 @@
       </div>
       <p class="subtitle">Sign in to manage and track support tickets</p>
 
-      <div class="role-tabs" role="tablist" aria-label="Login role">
-        <button type="button" class="role-tab active" data-role="user">User</button>
-        <button type="button" class="role-tab" data-role="agent">Agent</button>
-        <button type="button" class="role-tab" data-role="admin">Admin</button>
-      </div>
-
       <form id="login-form" novalidate>
         <label for="email">Email</label>
         <input type="email" id="email" name="email" placeholder="you@example.com" required />
@@ -30,13 +24,15 @@
 
         <p class="form-error" id="form-error" hidden></p>
 
-        <button type="submit" class="btn-primary">Log in as <span id="role-label">User</span></button>
+        <button type="submit" class="btn-primary">Log in</button>
       </form>
 
       <p class="signup-hint">New here? <a href="register.html">Create an account</a></p>
     </div>
   </div>
 
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/login.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 
+const authRouter = require("./routes/auth");
 const lookupsRouter = require("./routes/lookups");
 const ticketsRouter = require("./routes/tickets");
 const dashboardRouter = require("./routes/dashboard");
@@ -15,6 +16,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "HelpDesk Pro API is running" });
 });
 
+app.use("/api/auth", authRouter);
 app.use("/api", lookupsRouter);
 app.use("/api/tickets", ticketsRouter);
 app.use("/api/dashboard", dashboardRouter);

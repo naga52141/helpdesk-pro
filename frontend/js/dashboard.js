@@ -28,11 +28,6 @@ const greetingEl = document.getElementById("dashboard-greeting");
 const subtitleEl = document.getElementById("dashboard-subtitle");
 const recentTitleEl = document.getElementById("recent-title");
 const errorEl = document.getElementById("dashboard-error");
-const adminLink = document.querySelector(".admin-only");
-
-function capitalize(word) {
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
 
 function renderStats(stats) {
   statGrid.innerHTML = "";
@@ -75,13 +70,10 @@ async function render(role) {
   greetingEl.textContent = text.greeting;
   subtitleEl.textContent = text.subtitle;
   recentTitleEl.textContent = text.recentTitle;
-  adminLink.hidden = role !== "admin";
   errorEl.hidden = true;
 
-  const { id: userId } = DEMO_USERS[role];
-
   try {
-    const { stats, recentTickets } = await apiFetch(`/dashboard/stats?role=${role}&userId=${userId}`);
+    const { stats, recentTickets } = await apiFetch("/dashboard/stats");
     renderStats(stats);
     renderRecentTickets(recentTickets);
   } catch (err) {
@@ -92,5 +84,5 @@ async function render(role) {
   }
 }
 
-const initialRole = initRolePreview(render);
-render(initialRole);
+const session = requireSession();
+render(session.user.role);

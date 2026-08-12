@@ -28,10 +28,6 @@ const slaPillClass = {
   "on-track": "pill-sla-on-track",
 };
 
-function capitalize(word) {
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
 function statusText(status) {
   return capitalize(status.replace("-", " "));
 }
@@ -50,6 +46,8 @@ function computeSlaStatus(ticket) {
   if (due.toDateString() === now.toDateString()) return "due-today";
   return "on-track";
 }
+
+const session = requireSession();
 
 const params = new URLSearchParams(window.location.search);
 const ticketId = (params.get("id") || "").replace(/^T-/i, "");
@@ -82,7 +80,7 @@ async function init() {
 
 function runDetailPage(initialTicket, agents) {
   let ticket = initialTicket;
-  let currentRole = "user";
+  const isAgentOrAdmin = session.user.role === "agent" || session.user.role === "admin";
 
   const els = {
     title: document.getElementById("d-title"),
@@ -108,7 +106,6 @@ function runDetailPage(initialTicket, agents) {
     userControls: document.getElementById("user-controls"),
     userHint: document.getElementById("user-actions-hint"),
     reopenBtn: document.getElementById("reopen-btn"),
-    adminLink: document.querySelector(".admin-only"),
   };
 
   agents.forEach((agent) => {
@@ -117,6 +114,9 @@ function runDetailPage(initialTicket, agents) {
     opt.textContent = agent.name;
     els.assignSelect.appendChild(opt);
   });
+
+  els.agentControls.hidden = !isAgentOrAdmin;
+  els.userControls.hidden = isAgentOrAdmin;
 
   function renderStaticFields() {
     els.title.textContent = ticket.title;
@@ -181,25 +181,12 @@ function runDetailPage(initialTicket, agents) {
     });
   }
 
-  function renderAll() {
-    renderStaticFields();
-    renderDynamicFields();
-    renderComments();
-  }
-
-  function applyRoleVisibility() {
-    const isAgentOrAdmin = currentRole === "agent" || currentRole === "admin";
-    els.agentControls.hidden = !isAgentOrAdmin;
-    els.userControls.hidden = isAgentOrAdmin;
-    els.adminLink.hidden = currentRole !== "admin";
-  }
-
   async function patchTicket(body) {
     detailErrorEl.hidden = true;
     try {
       ticket = await apiFetch(`/tickets/${ticket.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ ...body, changedBy: getCurrentUser().id }),
+        body: JSON.stringify(body),
       });
       renderDynamicFields();
     } catch (err) {
@@ -243,7 +230,7 @@ function runDetailPage(initialTicket, agents) {
     try {
       const newComment = await apiFetch(`/tickets/${ticket.id}/comments`, {
         method: "POST",
-        body: JSON.stringify({ userId: getCurrentUser().id, comment: text }),
+        body: JSON.stringify({ comment: text }),
       });
       ticket.comments.push(newComment);
       textarea.value = "";
@@ -254,11 +241,7 @@ function runDetailPage(initialTicket, agents) {
     }
   });
 
-  currentRole = initRolePreview((role) => {
-    currentRole = role;
-    applyRoleVisibility();
-  });
-
-  renderAll();
-  applyRoleVisibility();
+  renderStaticFields();
+  renderDynamicFields();
+  renderComments();
 }

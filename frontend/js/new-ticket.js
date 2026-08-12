@@ -1,16 +1,7 @@
-const requesterField = document.getElementById("requester-field");
-const adminLink = document.querySelector(".admin-only");
 const form = document.getElementById("ticket-form");
 const formError = document.getElementById("form-error");
 const categorySelect = document.getElementById("category");
 const departmentSelect = document.getElementById("department");
-
-function setRole(role) {
-  const showRequester = role === "agent" || role === "admin";
-  requesterField.hidden = !showRequester;
-  document.getElementById("requester").required = showRequester;
-  adminLink.hidden = role !== "admin";
-}
 
 async function loadLookups() {
   try {
@@ -36,7 +27,7 @@ async function loadLookups() {
   }
 }
 
-setRole(initRolePreview(setRole));
+requireSession();
 loadLookups();
 
 form.addEventListener("submit", async (event) => {
@@ -66,7 +57,6 @@ form.addEventListener("submit", async (event) => {
         categoryId: Number(categoryId),
         priority,
         departmentId: Number(departmentId),
-        createdBy: getCurrentUser().id,
         deviceInfo: deviceInfo || null,
       }),
     });
