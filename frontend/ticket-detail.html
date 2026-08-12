@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — Ticket Detail</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body class="app-body">
+  <header class="navbar">
+    <div class="navbar-left">
+      <span class="brand-mark">HD</span>
+      <span class="navbar-title">HelpDesk Pro</span>
+    </div>
+
+    <nav class="navbar-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="tickets.html" class="nav-link active">Tickets</a>
+      <a href="#" class="nav-link">Analytics</a>
+      <a href="#" class="nav-link admin-only" hidden>Users</a>
+    </nav>
+
+    <div class="navbar-right">
+      <div class="role-tabs role-tabs-small" role="tablist" aria-label="Preview role">
+        <button type="button" class="role-tab active" data-role="user">User</button>
+        <button type="button" class="role-tab" data-role="agent">Agent</button>
+        <button type="button" class="role-tab" data-role="admin">Admin</button>
+      </div>
+      <a href="new-ticket.html" class="btn-primary btn-new-ticket">+ New Ticket</a>
+    </div>
+  </header>
+
+  <main class="dashboard-main" id="detail-main">
+    <a href="tickets.html" class="back-link">&larr; Back to tickets</a>
+
+    <div id="not-found" class="recent-section" hidden>
+      <p>Ticket not found. <a href="tickets.html">Go back to the ticket queue</a>.</p>
+    </div>
+
+    <div id="ticket-content" hidden>
+      <div class="detail-header">
+        <div>
+          <h2 id="d-title"></h2>
+          <p class="text-muted" id="d-id"></p>
+        </div>
+        <div class="detail-pills">
+          <span class="pill" id="d-status-pill"></span>
+          <span class="pill" id="d-priority-pill"></span>
+          <span class="pill" id="d-sla-pill"></span>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-main-col">
+          <section class="recent-section detail-card">
+            <h3>Description</h3>
+            <p id="d-description" class="detail-description"></p>
+          </section>
+
+          <section class="recent-section detail-card">
+            <h3>Comments</h3>
+            <div id="comments-list" class="comments-list"></div>
+
+            <form id="comment-form">
+              <label for="comment-text">Add a comment</label>
+              <textarea id="comment-text" rows="3" placeholder="Write an update..."></textarea>
+              <button type="submit" class="btn-primary btn-submit">Post Comment</button>
+            </form>
+          </section>
+        </div>
+
+        <div class="detail-side-col">
+          <section class="recent-section detail-card">
+            <h3>Details</h3>
+            <dl class="detail-fields">
+              <dt>Requester</dt><dd id="d-requester"></dd>
+              <dt>Category</dt><dd id="d-category"></dd>
+              <dt>Department</dt><dd id="d-department"></dd>
+              <dt>Assigned agent</dt><dd id="d-agent"></dd>
+              <dt>Device info</dt><dd id="d-device"></dd>
+              <dt>Attachment</dt><dd id="d-attachment"></dd>
+              <dt>Created</dt><dd id="d-created"></dd>
+              <dt>SLA due</dt><dd id="d-sla-due"></dd>
+              <dt>Last updated</dt><dd id="d-updated"></dd>
+            </dl>
+          </section>
+
+          <section class="recent-section detail-card agent-only" id="agent-controls">
+            <h3>Manage ticket</h3>
+
+            <label for="assign-select">Assign to</label>
+            <div class="control-row">
+              <select id="assign-select">
+                <option value="Unassigned">Unassigned</option>
+                <option value="Alex Kim">Alex Kim</option>
+                <option value="Priya Nair">Priya Nair</option>
+                <option value="Jordan Lee">Jordan Lee</option>
+              </select>
+              <button type="button" id="assign-btn" class="btn-secondary">Assign</button>
+            </div>
+
+            <label for="status-select">Status</label>
+            <div class="control-row">
+              <select id="status-select">
+                <option value="open">Open</option>
+                <option value="in-progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+              </select>
+              <button type="button" id="status-btn" class="btn-secondary">Update</button>
+            </div>
+
+            <label for="priority-select">Priority</label>
+            <div class="control-row">
+              <select id="priority-select">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+              <button type="button" id="priority-btn" class="btn-secondary">Update</button>
+            </div>
+
+            <div class="quick-actions">
+              <button type="button" id="resolve-btn" class="btn-secondary">Mark Resolved</button>
+              <button type="button" id="close-btn" class="btn-secondary">Close Ticket</button>
+            </div>
+          </section>
+
+          <section class="recent-section detail-card user-only" id="user-controls" hidden>
+            <h3>Ticket actions</h3>
+            <p class="text-muted" id="user-actions-hint">You'll be notified here when there's an update.</p>
+            <button type="button" id="reopen-btn" class="btn-secondary" hidden>Reopen Ticket</button>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/ticket-data.js"></script>
+  <script src="js/ticket-detail.js"></script>
+</body>
+</html>

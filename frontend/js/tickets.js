@@ -1,20 +1,5 @@
-// Mock data — will be replaced by a real API call once the backend exists.
-const allTickets = [
-  { id: "T-1042", title: "VPN not connecting", category: "network", priority: "high", status: "open", agent: "Alex Kim", department: "IT", updated: "2026-08-12", mine: false },
-  { id: "T-1041", title: "Payroll portal error", category: "software", priority: "critical", status: "in-progress", agent: "Priya Nair", department: "Finance", updated: "2026-08-12", mine: false },
-  { id: "T-1039", title: "New laptop request", category: "hardware", priority: "low", status: "resolved", agent: "Alex Kim", department: "IT", updated: "2026-08-11", mine: false },
-  { id: "T-1038", title: "Access to shared drive", category: "account-access", priority: "medium", status: "open", agent: "Unassigned", department: "Operations", updated: "2026-08-11", mine: false },
-  { id: "T-1037", title: "Slow wifi in conference room", category: "network", priority: "medium", status: "in-progress", agent: "Jordan Lee", department: "IT", updated: "2026-08-11", mine: false },
-  { id: "T-1036", title: "Software license renewal", category: "software", priority: "low", status: "closed", agent: "Priya Nair", department: "Finance", updated: "2026-08-10", mine: false },
-  { id: "T-1035", title: "Email sync issue", category: "software", priority: "medium", status: "closed", agent: "Alex Kim", department: "IT", updated: "2026-08-10", mine: true },
-  { id: "T-1034", title: "Password reset", category: "account-access", priority: "low", status: "resolved", agent: "Jordan Lee", department: "HR", updated: "2026-08-10", mine: false },
-  { id: "T-1033", title: "Monitor not turning on", category: "hardware", priority: "medium", status: "open", agent: "Unassigned", department: "IT", updated: "2026-08-09", mine: false },
-  { id: "T-1032", title: "Timesheet app crashing", category: "software", priority: "high", status: "in-progress", agent: "Priya Nair", department: "Finance", updated: "2026-08-09", mine: false },
-  { id: "T-1031", title: "Printer offline - 3rd floor", category: "hardware", priority: "medium", status: "open", agent: "Alex Kim", department: "Operations", updated: "2026-08-10", mine: false },
-  { id: "T-1028", title: "Blocked website access request", category: "network", priority: "low", status: "open", agent: "Unassigned", department: "IT", updated: "2026-08-08", mine: false },
-  { id: "T-1025", title: "Onboarding account setup", category: "account-access", priority: "high", status: "resolved", agent: "Jordan Lee", department: "HR", updated: "2026-08-07", mine: false },
-  { id: "T-1020", title: "Monitor flickering", category: "hardware", priority: "low", status: "resolved", agent: "Alex Kim", department: "IT", updated: "2026-08-05", mine: true },
-];
+// Ticket data comes from the shared TICKETS array (js/ticket-data.js), loaded before this file.
+const allTickets = TICKETS;
 
 const statusPillClass = {
   "open": "pill-open",
@@ -95,7 +80,7 @@ function render() {
   filtered.forEach((t) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td class="ticket-id">${t.id}</td>
+      <td><a class="ticket-id" href="ticket-detail.html?id=${t.id}">${t.id}</a></td>
       <td>${t.title}</td>
       <td>${categoryLabel[t.category]}</td>
       <td><span class="pill ${priorityPillClass[t.priority]}">${capitalize(t.priority)}</span></td>

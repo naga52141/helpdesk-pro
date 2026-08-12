@@ -209,13 +209,212 @@
 
 .ticket-id {
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.ticket-id:hover {
+  text-decoration: underline;
 }
 
 .empty-row td {
   text-align: center;
   color: var(--color-muted);
   padding: 24px 8px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.back-link:hover {
+  color: var(--color-primary);
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.detail-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.detail-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill-sla-breached { background: #fde0e0; color: #d64545; }
+.pill-sla-due-today { background: #fff3d6; color: #b8860b; }
+.pill-sla-met { background: #dff5e6; color: #1f9d55; }
+.pill-sla-late { background: #ffe6d6; color: #d2691e; }
+.pill-sla-on-track { background: #e3edff; color: #2f6feb; }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.detail-card {
+  margin-bottom: 20px;
+}
+
+.detail-card h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+
+.detail-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.detail-fields {
+  margin: 0;
+  font-size: 13px;
+}
+
+.detail-fields dt {
+  color: var(--color-muted);
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.detail-fields dt:first-child {
+  margin-top: 0;
+}
+
+.detail-fields dd {
+  margin: 2px 0 0;
+  color: var(--color-text);
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.comment {
+  padding: 12px 14px;
+  background: #f7f8fb;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.comment-author {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+.role-badge-agent { background: #e3edff; color: #2f6feb; }
+.role-badge-user { background: #eceef3; color: #6b7280; }
+
+.no-comments {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+#comment-form label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+#comment-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  margin-bottom: 12px;
+  outline: none;
+  resize: vertical;
+}
+
+#comment-form textarea:focus {
+  border-color: var(--color-primary);
+}
+
+#comment-form .btn-submit {
+  width: auto;
+}
+
+.control-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.control-row select {
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.control-row .btn-secondary {
+  padding: 9px 14px;
+  white-space: nowrap;
+}
+
+#agent-controls label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: 6px;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-card {
