@@ -34,7 +34,14 @@ async function getTicketDetail(id) {
     [id]
   );
 
-  return { ...ticket, comments };
+  const [history] = await pool.query(
+    `SELECT h.id, h.field, h.old_value AS oldValue, h.new_value AS newValue, h.changed_at AS changedAt, u.name AS changedBy
+     FROM ticket_history h JOIN users u ON h.changed_by = u.id
+     WHERE h.ticket_id = ? ORDER BY h.changed_at ASC`,
+    [id]
+  );
+
+  return { ...ticket, comments, history };
 }
 
 function canAccessTicket(user, createdById) {
@@ -180,7 +187,17 @@ router.patch("/:id", asyncHandler(async (req, res) => {
     if (newAssignedTo !== existing.assigned_to) {
       updates.push("assigned_to = ?");
       params.push(newAssignedTo);
-      historyEntries.push(["assigned_to", existing.assigned_to, newAssignedTo]);
+
+      // Store names, not raw ids — the history log is for reading, not for joining.
+      const [oldName, newName] = await Promise.all([
+        existing.assigned_to
+          ? pool.query("SELECT name FROM users WHERE id = ?", [existing.assigned_to]).then(([rows]) => rows[0]?.name)
+          : null,
+        newAssignedTo
+          ? pool.query("SELECT name FROM users WHERE id = ?", [newAssignedTo]).then(([rows]) => rows[0]?.name)
+          : null,
+      ]);
+      historyEntries.push(["assigned_to", oldName || "Unassigned", newName || "Unassigned"]);
     }
   }
 

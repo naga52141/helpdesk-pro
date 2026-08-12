@@ -28,6 +28,18 @@ const slaPillClass = {
   "on-track": "pill-sla-on-track",
 };
 
+const FIELD_LABELS = {
+  status: "status",
+  priority: "priority",
+  assigned_to: "assignment",
+};
+
+function formatHistoryValue(field, value) {
+  if (field === "status") return statusText(value);
+  if (field === "priority") return capitalize(value);
+  return value; // assigned_to already stores names ("Unassigned" or an agent's name)
+}
+
 function statusText(status) {
   return capitalize(status.replace("-", " "));
 }
@@ -106,6 +118,7 @@ function runDetailPage(initialTicket, agents) {
     userControls: document.getElementById("user-controls"),
     userHint: document.getElementById("user-actions-hint"),
     reopenBtn: document.getElementById("reopen-btn"),
+    activityList: document.getElementById("activity-list"),
   };
 
   agents.forEach((agent) => {
@@ -181,6 +194,27 @@ function runDetailPage(initialTicket, agents) {
     });
   }
 
+  function renderActivity() {
+    els.activityList.innerHTML = "";
+    if (ticket.history.length === 0) {
+      els.activityList.innerHTML = `<p class="no-activity">No changes yet.</p>`;
+      return;
+    }
+    ticket.history.forEach((h) => {
+      const item = document.createElement("div");
+      item.className = "activity-item";
+      const label = FIELD_LABELS[h.field] || h.field;
+      const from = formatHistoryValue(h.field, h.oldValue);
+      const to = formatHistoryValue(h.field, h.newValue);
+      item.innerHTML = `
+        <span class="activity-dot"></span>
+        <span class="activity-text"><strong>${h.changedBy}</strong> changed ${label} from <strong>${from}</strong> to <strong>${to}</strong></span>
+        <span class="activity-time">${new Date(h.changedAt).toLocaleString()}</span>
+      `;
+      els.activityList.appendChild(item);
+    });
+  }
+
   async function patchTicket(body) {
     detailErrorEl.hidden = true;
     try {
@@ -189,6 +223,7 @@ function runDetailPage(initialTicket, agents) {
         body: JSON.stringify(body),
       });
       renderDynamicFields();
+      renderActivity();
     } catch (err) {
       detailErrorEl.textContent = err.message;
       detailErrorEl.hidden = false;
@@ -244,4 +279,5 @@ function runDetailPage(initialTicket, agents) {
   renderStaticFields();
   renderDynamicFields();
   renderComments();
+  renderActivity();
 }

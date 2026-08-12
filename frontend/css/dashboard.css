@@ -363,6 +363,48 @@
   font-size: 13px;
 }
 
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  align-items: baseline;
+}
+
+.activity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.activity-text {
+  color: var(--color-text);
+}
+
+.activity-text strong {
+  font-weight: 600;
+}
+
+.activity-time {
+  color: var(--color-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.no-activity {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
 #comment-form label {
   display: block;
   font-size: 13px;
