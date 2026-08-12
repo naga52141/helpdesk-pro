@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — Tickets</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body class="app-body">
+  <header class="navbar">
+    <div class="navbar-left">
+      <span class="brand-mark">HD</span>
+      <span class="navbar-title">HelpDesk Pro</span>
+    </div>
+
+    <nav class="navbar-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="tickets.html" class="nav-link active">Tickets</a>
+      <a href="#" class="nav-link">Analytics</a>
+      <a href="#" class="nav-link admin-only" hidden>Users</a>
+    </nav>
+
+    <div class="navbar-right">
+      <div class="role-tabs role-tabs-small" role="tablist" aria-label="Preview role">
+        <button type="button" class="role-tab active" data-role="user">User</button>
+        <button type="button" class="role-tab" data-role="agent">Agent</button>
+        <button type="button" class="role-tab" data-role="admin">Admin</button>
+      </div>
+      <a href="new-ticket.html" class="btn-primary btn-new-ticket">+ New Ticket</a>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="dashboard-heading">
+      <h2 id="tickets-title">My tickets</h2>
+      <p class="text-muted" id="tickets-count"></p>
+    </div>
+
+    <section class="filter-bar">
+      <input type="text" id="search-input" class="filter-search" placeholder="Search by ticket ID or title..." />
+
+      <select id="filter-status">
+        <option value="all">All statuses</option>
+        <option value="open">Open</option>
+        <option value="in-progress">In Progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
+
+      <select id="filter-priority">
+        <option value="all">All priorities</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="critical">Critical</option>
+      </select>
+
+      <select id="filter-category">
+        <option value="all">All categories</option>
+        <option value="hardware">Hardware</option>
+        <option value="software">Software</option>
+        <option value="network">Network</option>
+        <option value="account-access">Account Access</option>
+        <option value="other">Other</option>
+      </select>
+
+      <select id="filter-agent">
+        <option value="all">All agents</option>
+        <option value="Alex Kim">Alex Kim</option>
+        <option value="Priya Nair">Priya Nair</option>
+        <option value="Jordan Lee">Jordan Lee</option>
+        <option value="Unassigned">Unassigned</option>
+      </select>
+
+      <button type="button" id="clear-filters" class="btn-secondary">Clear</button>
+    </section>
+
+    <section class="recent-section">
+      <div class="table-wrap">
+        <table class="ticket-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Assigned Agent</th>
+              <th>Department</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody id="tickets-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/tickets.js"></script>
+</body>
+</html>

@@ -174,6 +174,50 @@
 .pill-high { background: #ffe6d6; color: #d2691e; }
 .pill-critical { background: #fde0e0; color: #d64545; }
 
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.filter-bar select,
+.filter-bar input {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--color-text);
+  outline: none;
+}
+
+.filter-bar select:focus,
+.filter-bar input:focus {
+  border-color: var(--color-primary);
+}
+
+.filter-search {
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.filter-bar .btn-secondary {
+  padding: 9px 16px;
+}
+
+.ticket-id {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.empty-row td {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 24px 8px;
+}
+
 .form-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
