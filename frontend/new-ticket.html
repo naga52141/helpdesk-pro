@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — New Ticket</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body class="app-body">
+  <header class="navbar">
+    <div class="navbar-left">
+      <span class="brand-mark">HD</span>
+      <span class="navbar-title">HelpDesk Pro</span>
+    </div>
+
+    <nav class="navbar-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="#" class="nav-link active">Tickets</a>
+      <a href="#" class="nav-link">Analytics</a>
+      <a href="#" class="nav-link admin-only" hidden>Users</a>
+    </nav>
+
+    <div class="navbar-right">
+      <div class="role-tabs role-tabs-small" role="tablist" aria-label="Preview role">
+        <button type="button" class="role-tab active" data-role="user">User</button>
+        <button type="button" class="role-tab" data-role="agent">Agent</button>
+        <button type="button" class="role-tab" data-role="admin">Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="dashboard-heading">
+      <h2>New Ticket</h2>
+      <p class="text-muted">Describe the issue and we'll route it to the right team</p>
+    </div>
+
+    <section class="form-card">
+      <form id="ticket-form" novalidate>
+        <div id="requester-field" hidden>
+          <label for="requester">Requester (on behalf of)</label>
+          <input type="text" id="requester" name="requester" placeholder="Name or email of the user" />
+        </div>
+
+        <label for="title">Issue title</label>
+        <input type="text" id="title" name="title" placeholder="e.g. Can't connect to VPN" required />
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="5" placeholder="What happened? Steps to reproduce, error messages, etc." required></textarea>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+              <option value="" disabled selected>Select category</option>
+              <option value="hardware">Hardware</option>
+              <option value="software">Software</option>
+              <option value="network">Network</option>
+              <option value="account-access">Account Access</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-col">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority" required>
+              <option value="" disabled selected>Select priority</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label for="department">Department</label>
+            <select id="department" name="department" required>
+              <option value="" disabled selected>Select department</option>
+              <option value="it">IT</option>
+              <option value="hr">HR</option>
+              <option value="finance">Finance</option>
+              <option value="operations">Operations</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-col">
+            <label for="device-info">Device information</label>
+            <input type="text" id="device-info" name="deviceInfo" placeholder="e.g. Dell Latitude 5420, Windows 11" />
+          </div>
+        </div>
+
+        <label for="attachment">Attachment</label>
+        <input type="file" id="attachment" name="attachment" />
+
+        <p class="form-error" id="form-error" hidden></p>
+
+        <div class="form-actions">
+          <a href="dashboard.html" class="btn-secondary">Cancel</a>
+          <button type="submit" class="btn-primary btn-submit">Submit Ticket</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/new-ticket.js"></script>
+</body>
+</html>
