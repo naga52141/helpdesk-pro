@@ -5,6 +5,7 @@ const authRouter = require("./routes/auth");
 const lookupsRouter = require("./routes/lookups");
 const ticketsRouter = require("./routes/tickets");
 const dashboardRouter = require("./routes/dashboard");
+const analyticsRouter = require("./routes/analytics");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -20,6 +21,7 @@ app.use("/api/auth", authRouter);
 app.use("/api", lookupsRouter);
 app.use("/api/tickets", ticketsRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/analytics", analyticsRouter);
 
 app.use((err, req, res, next) => {
   console.error(err);

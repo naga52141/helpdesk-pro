@@ -1,0 +1,267 @@
+:root {
+  --viz-surface: #ffffff;
+  --viz-text-primary: var(--color-text);
+  --viz-text-secondary: var(--color-muted);
+  --viz-muted: #898781;
+  --viz-gridline: #e1e0d9;
+  --viz-baseline: #c3c2b7;
+  --viz-series-1: #2f6feb;
+  --viz-series-1-wash: rgba(47, 111, 235, 0.1);
+  --viz-good: #0ca30c;
+  --viz-warning: #d99000;
+  --viz-serious: #c96a3f;
+  --viz-critical: #d03b3b;
+}
+
+.analytics-heading {
+  margin-bottom: 28px;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-tile {
+  background: var(--viz-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--viz-text-secondary);
+  margin-bottom: 10px;
+}
+
+.kpi-value {
+  font-size: 34px;
+  font-weight: 600;
+  color: var(--viz-text-primary);
+  font-variant-numeric: proportional-nums;
+  line-height: 1.1;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--viz-muted);
+  margin-top: 6px;
+}
+
+.meter-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-border);
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chart-card {
+  background: var(--viz-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px 22px 18px;
+  margin-bottom: 16px;
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.chart-card-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.table-toggle-btn {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.table-toggle-btn:hover {
+  text-decoration: underline;
+}
+
+.viz-svg-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.viz-svg-wrap svg {
+  display: block;
+}
+
+.viz-bar-label {
+  font-size: 12px;
+  fill: var(--viz-text-secondary);
+}
+
+.viz-value-label {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--viz-text-primary);
+}
+
+.viz-gridline {
+  stroke: var(--viz-gridline);
+  stroke-width: 1;
+}
+
+.viz-baseline {
+  stroke: var(--viz-baseline);
+  stroke-width: 1;
+}
+
+.viz-bar {
+  transition: opacity 0.1s ease;
+  cursor: pointer;
+}
+
+.viz-bar:hover,
+.viz-bar.hovered {
+  opacity: 0.82;
+}
+
+.viz-line {
+  fill: none;
+  stroke: var(--viz-series-1);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.viz-area {
+  fill: var(--viz-series-1-wash);
+}
+
+.viz-dot {
+  fill: var(--viz-series-1);
+  stroke: var(--viz-surface);
+  stroke-width: 2;
+}
+
+.viz-crosshair {
+  stroke: var(--viz-baseline);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.viz-tooltip {
+  position: absolute;
+  background: var(--color-text);
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.viz-tooltip .tt-value {
+  font-weight: 700;
+}
+
+.viz-tooltip .tt-label {
+  color: #d5d8e0;
+  margin-top: 2px;
+}
+
+.legend-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--viz-text-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.chart-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.chart-data-table th {
+  text-align: left;
+  color: var(--viz-text-secondary);
+  font-weight: 600;
+  padding: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.chart-data-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.agent-table td.agent-name-cell {
+  font-variant-numeric: normal;
+  font-weight: 600;
+}
+
+.empty-chart-state {
+  color: var(--viz-muted);
+  font-size: 13px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.access-denied {
+  background: var(--viz-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+  color: var(--viz-text-secondary);
+}
+
+@media (max-width: 800px) {
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}

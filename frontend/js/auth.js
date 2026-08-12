@@ -47,5 +47,10 @@ function requireSession() {
   const adminLink = document.querySelector(".admin-only");
   if (adminLink) adminLink.hidden = session.user.role !== "admin";
 
+  const isAgentOrAdmin = session.user.role === "agent" || session.user.role === "admin";
+  document.querySelectorAll(".staff-only").forEach((el) => {
+    el.hidden = !isAgentOrAdmin;
+  });
+
   return session;
 }

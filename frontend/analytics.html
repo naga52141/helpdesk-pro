@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HelpDesk Pro — Analytics</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/analytics.css" />
+</head>
+<body class="app-body">
+  <header class="navbar">
+    <div class="navbar-left">
+      <span class="brand-mark">HD</span>
+      <span class="navbar-title">HelpDesk Pro</span>
+    </div>
+
+    <nav class="navbar-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="tickets.html" class="nav-link">Tickets</a>
+      <a href="analytics.html" class="nav-link staff-only active" hidden>Analytics</a>
+      <a href="#" class="nav-link admin-only" hidden>Users</a>
+    </nav>
+
+    <div class="navbar-right">
+      <div class="user-chip">
+        <span id="current-user-name" class="user-chip-name"></span>
+        <span id="current-user-role" class="role-chip"></span>
+        <button type="button" id="logout-btn" class="btn-secondary">Logout</button>
+      </div>
+      <a href="new-ticket.html" class="btn-primary btn-new-ticket">+ New Ticket</a>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="dashboard-heading analytics-heading">
+      <h2>Analytics</h2>
+      <p class="text-muted">Ticket trends, SLA performance, and agent workload</p>
+      <p id="analytics-error" class="form-error" hidden></p>
+    </div>
+
+    <div id="access-denied" class="access-denied" hidden>
+      <p>Analytics is available to agents and admins only.</p>
+    </div>
+
+    <div id="analytics-content" hidden>
+      <section class="kpi-row">
+        <div class="kpi-tile">
+          <div class="kpi-label">Average Resolution Time</div>
+          <div class="kpi-value" id="kpi-resolution-time">—</div>
+          <div class="kpi-sub">Across all resolved tickets</div>
+        </div>
+
+        <div class="kpi-tile">
+          <div class="kpi-label">SLA Compliance</div>
+          <div class="kpi-value" id="kpi-sla-percentage">—</div>
+          <div class="meter-track"><div class="meter-fill" id="sla-meter-fill" style="width: 0%"></div></div>
+          <div class="kpi-sub" id="kpi-sla-sub"></div>
+        </div>
+
+        <div class="kpi-tile">
+          <div class="kpi-label">Total Tickets</div>
+          <div class="kpi-value" id="kpi-total-tickets">—</div>
+          <div class="kpi-sub">All time</div>
+        </div>
+      </section>
+
+      <section class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Tickets by Category</h3>
+            <button type="button" class="table-toggle-btn" id="category-toggle">View as table</button>
+          </div>
+          <div id="category-viz"></div>
+          <div id="category-table" hidden></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Tickets by Priority</h3>
+            <button type="button" class="table-toggle-btn" id="priority-toggle">View as table</button>
+          </div>
+          <div id="priority-viz"></div>
+          <div id="priority-table" hidden></div>
+          <div class="legend-row" id="priority-legend"></div>
+        </div>
+      </section>
+
+      <section class="chart-card">
+        <div class="chart-card-header">
+          <h3>Tickets by Month</h3>
+          <button type="button" class="table-toggle-btn" id="month-toggle">View as table</button>
+        </div>
+        <div id="month-viz"></div>
+        <div id="month-table" hidden></div>
+      </section>
+
+      <section class="chart-card">
+        <div class="chart-card-header">
+          <h3>Agent Performance</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="chart-data-table agent-table" id="agent-table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Assigned</th>
+                <th>Resolved</th>
+                <th>Avg Resolution Time</th>
+                <th>SLA Compliance</th>
+              </tr>
+            </thead>
+            <tbody id="agent-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/analytics.js"></script>
+</body>
+</html>
