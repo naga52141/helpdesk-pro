@@ -78,3 +78,15 @@ jobs:
       - name: Run Selenium/PyTest suite
         working-directory: tests
         run: python -m pytest -v
+
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t helpdeskpro-backend ./backend
+
+      - name: Build frontend image
+        run: docker build -t helpdeskpro-frontend ./frontend
