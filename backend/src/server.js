@@ -11,6 +11,7 @@ const analyticsRouter = require("./routes/analytics");
 const usersRouter = require("./routes/users");
 const slaRulesRouter = require("./routes/slaRules");
 const notificationsRouter = require("./routes/notifications");
+const articlesRouter = require("./routes/articles");
 const { checkSlaWarnings, checkSlaBreaches } = require("./utils/slaWarnings");
 const { initSocket } = require("./socket");
 
@@ -35,6 +36,7 @@ app.use("/api/analytics", analyticsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/sla-rules", slaRulesRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use("/api/articles", articlesRouter);
 
 app.use((err, req, res, next) => {
   console.error(err);

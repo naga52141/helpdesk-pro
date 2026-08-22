@@ -39,3 +39,29 @@ class NewTicketPage(BasePage):
 
     def error_text(self):
         return self.wait_until_visible(By.ID, "form-error").text
+
+    def set_title_for_suggestions(self, text):
+        # A single dispatched input event, not send_keys — each keystroke fires its own
+        # debounced search, and out-of-order responses would make this flaky otherwise.
+        box = self.find(By.ID, "title")
+        self.driver.execute_script(
+            "arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input', { bubbles: true }));",
+            box, text,
+        )
+        return self
+
+    def kb_suggestions_visible(self):
+        return self.find(By.ID, "kb-suggestions").is_displayed()
+
+    def kb_suggestion_titles(self):
+        return [el.text for el in self.driver.find_elements(By.CSS_SELECTOR, "#kb-suggestions-list .kb-suggestion-link")]
+
+    def wait_for_kb_suggestions(self, timeout=10):
+        # The debounce (400ms) plus the search request both land after set_title_for_suggestions
+        # returns, so callers need to wait for the box rather than checking it immediately.
+        WebDriverWait(self.driver, timeout).until(lambda d: self.kb_suggestions_visible())
+        return self
+
+    def wait_for_no_kb_suggestions(self, timeout=10):
+        WebDriverWait(self.driver, timeout).until(lambda d: not self.kb_suggestions_visible())
+        return self

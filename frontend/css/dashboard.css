@@ -236,7 +236,8 @@
   letter-spacing: 0.03em;
 }
 
-.btn-new-ticket {
+.btn-new-ticket,
+.btn-new-article {
   width: auto;
   padding: 9px 16px;
   white-space: nowrap;
@@ -651,9 +652,15 @@
 }
 
 .control-row {
-  display: flex;
+  display: none;
   gap: 8px;
   margin-bottom: 16px;
+}
+
+/* See the matching note on .btn-primary in style.css — needed now that .control-row
+   is also used on an element toggled via the hidden attribute (article-actions). */
+.control-row:not([hidden]) {
+  display: flex;
 }
 
 .control-row select {
@@ -841,6 +848,92 @@
   .stat-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.access-denied {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.kb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kb-card {
+  display: block;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  background: var(--color-card);
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+.kb-card:hover {
+  background: var(--color-hover-bg);
+  border-color: var(--color-primary);
+}
+
+.kb-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.kb-card-meta {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 8px;
+}
+
+.kb-card-excerpt {
+  font-size: 13px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.article-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+
+.kb-suggestions {
+  margin: -8px 0 18px;
+  padding: 12px 14px;
+  background: var(--color-highlight-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.kb-suggestions-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.kb-suggestion-link {
+  display: block;
+  font-size: 13px;
+  color: var(--color-primary);
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.kb-suggestion-link:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 600px) {

@@ -4,7 +4,7 @@
   <script src="js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HelpDesk Pro — Dashboard</title>
+  <title>HelpDesk Pro — Article</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
 </head>
@@ -17,9 +17,9 @@
     </div>
 
     <nav class="navbar-links">
-      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
       <a href="tickets.html" class="nav-link">Tickets</a>
-      <a href="knowledge-base.html" class="nav-link">Knowledge Base</a>
+      <a href="knowledge-base.html" class="nav-link active">Knowledge Base</a>
       <a href="analytics.html" class="nav-link staff-only" hidden>Analytics</a>
       <a href="admin.html" class="nav-link admin-only" hidden>Admin</a>
     </nav>
@@ -53,34 +53,30 @@
   </header>
 
   <main class="dashboard-main" id="main-content" tabindex="-1">
-    <div class="dashboard-heading">
-      <h2 id="dashboard-greeting">Welcome back</h2>
-      <p id="dashboard-subtitle" class="text-muted">Here's what's happening with your tickets</p>
-      <p id="dashboard-error" class="form-error" hidden></p>
+    <a href="knowledge-base.html" class="back-link">&larr; Back to knowledge base</a>
+
+    <p id="detail-error" class="form-error" hidden></p>
+
+    <div id="not-found" class="recent-section" hidden>
+      <p>Article not found. <a href="knowledge-base.html">Go back to the knowledge base</a>.</p>
     </div>
 
-    <section class="stat-grid" id="stat-grid" aria-label="Ticket statistics"></section>
+    <div id="article-content-wrap" hidden>
+      <div class="detail-header">
+        <div>
+          <h2 id="a-title"></h2>
+          <p class="text-muted" id="a-meta"></p>
+        </div>
+        <div class="control-row staff-only" id="article-actions" hidden>
+          <a href="#" id="edit-link" class="btn-secondary">Edit</a>
+          <button type="button" id="delete-btn" class="btn-secondary">Delete</button>
+        </div>
+      </div>
 
-    <section class="recent-section">
-      <div class="recent-header">
-        <h3 id="recent-title">Recent tickets</h3>
-      </div>
-      <div class="table-wrap">
-        <table class="ticket-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody id="recent-tickets-body"></tbody>
-        </table>
-      </div>
-    </section>
+      <section class="recent-section detail-card">
+        <p id="a-content" class="article-content"></p>
+      </section>
+    </div>
   </main>
 
   <script src="http://localhost:4000/socket.io/socket.io.js"></script>
@@ -88,6 +84,6 @@
   <script src="js/api.js"></script>
   <script src="js/realtime.js"></script>
   <script src="js/notifications.js"></script>
-  <script src="js/dashboard.js"></script>
+  <script src="js/article-detail.js"></script>
 </body>
 </html>

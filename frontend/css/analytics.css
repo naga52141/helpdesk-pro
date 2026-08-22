@@ -266,15 +266,6 @@
   text-align: center;
 }
 
-.access-denied {
-  background: var(--viz-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 32px;
-  text-align: center;
-  color: var(--viz-text-secondary);
-}
-
 @media (max-width: 800px) {
   .kpi-row {
     grid-template-columns: 1fr;

@@ -188,6 +188,10 @@ def unique_name(label):
     return f"{TEST_NAME_PREFIX} {label} {uuid4().hex[:8]}"
 
 
+def unique_article_title():
+    return f"{TEST_TICKET_PREFIX} Test article {uuid4().hex[:8]}"
+
+
 def wait_for_email(to_email, subject_contains=None, timeout=10):
     """Polls Mailpit for the most recent email to `to_email`, returning its full body.
     Sorting by Created and taking the newest match means stale mail from an earlier
@@ -228,6 +232,7 @@ def cleanup_test_data(wait_for_health):
             upload_paths = [row["file_path"] for row in cur.fetchall()]
 
             cur.execute("DELETE FROM tickets WHERE title LIKE %s", (f"{TEST_TICKET_PREFIX}%",))
+            cur.execute("DELETE FROM articles WHERE title LIKE %s", (f"{TEST_TICKET_PREFIX}%",))
             cur.execute("DELETE FROM users WHERE email LIKE %s", (f"%@{TEST_EMAIL_DOMAIN}",))
             cur.execute("DELETE FROM categories WHERE name LIKE %s", (f"{TEST_NAME_PREFIX}%",))
             cur.execute("DELETE FROM departments WHERE name LIKE %s", (f"{TEST_NAME_PREFIX}%",))

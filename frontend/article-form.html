@@ -4,7 +4,7 @@
   <script src="js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HelpDesk Pro — New Ticket</title>
+  <title>HelpDesk Pro — Article Editor</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
 </head>
@@ -18,8 +18,8 @@
 
     <nav class="navbar-links">
       <a href="dashboard.html" class="nav-link">Dashboard</a>
-      <a href="tickets.html" class="nav-link active">Tickets</a>
-      <a href="knowledge-base.html" class="nav-link">Knowledge Base</a>
+      <a href="tickets.html" class="nav-link">Tickets</a>
+      <a href="knowledge-base.html" class="nav-link active">Knowledge Base</a>
       <a href="analytics.html" class="nav-link staff-only" hidden>Analytics</a>
       <a href="admin.html" class="nav-link admin-only" hidden>Admin</a>
     </nav>
@@ -48,70 +48,38 @@
         <span id="current-user-role" class="role-chip"></span>
         <button type="button" id="logout-btn" class="btn-secondary">Logout</button>
       </div>
+      <a href="new-ticket.html" class="btn-primary btn-new-ticket">+ New Ticket</a>
     </div>
   </header>
 
   <main class="dashboard-main" id="main-content" tabindex="-1">
     <div class="dashboard-heading">
-      <h2>New Ticket</h2>
-      <p class="text-muted">Describe the issue and we'll route it to the right team</p>
+      <h2 id="form-heading">New Article</h2>
+      <p class="text-muted">Write a self-service help article</p>
     </div>
 
-    <section class="form-card">
-      <form id="ticket-form" novalidate>
-        <label for="title">Issue title</label>
-        <input type="text" id="title" name="title" placeholder="e.g. Can't connect to VPN" required />
+    <div id="access-denied" class="access-denied" hidden>
+      <p>Creating knowledge base articles is available to agents and admins only.</p>
+    </div>
 
-        <div id="kb-suggestions" class="kb-suggestions" hidden>
-          <div class="kb-suggestions-title">Related help articles</div>
-          <div id="kb-suggestions-list"></div>
-        </div>
+    <section class="form-card" id="article-form-card" hidden>
+      <form id="article-form" novalidate>
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" placeholder="e.g. Resetting your password" required />
 
-        <label for="description">Description</label>
-        <textarea id="description" name="description" rows="5" placeholder="What happened? Steps to reproduce, error messages, etc." required></textarea>
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <option value="" disabled selected>Select category</option>
+        </select>
 
-        <div class="form-row">
-          <div class="form-col">
-            <label for="category">Category</label>
-            <select id="category" name="category" required>
-              <option value="" disabled selected>Select category</option>
-            </select>
-          </div>
-
-          <div class="form-col">
-            <label for="priority">Priority</label>
-            <select id="priority" name="priority" required>
-              <option value="" disabled selected>Select priority</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-col">
-            <label for="department">Department</label>
-            <select id="department" name="department" required>
-              <option value="" disabled selected>Select department</option>
-            </select>
-          </div>
-
-          <div class="form-col">
-            <label for="device-info">Device information</label>
-            <input type="text" id="device-info" name="deviceInfo" placeholder="e.g. Dell Latitude 5420, Windows 11" />
-          </div>
-        </div>
-
-        <label for="attachment">Attachment</label>
-        <input type="file" id="attachment" name="attachment" />
+        <label for="content">Content</label>
+        <textarea id="content" name="content" rows="12" placeholder="Write the article content..." required></textarea>
 
         <p class="form-error" id="form-error" hidden></p>
 
         <div class="form-actions">
-          <a href="dashboard.html" class="btn-secondary">Cancel</a>
-          <button type="submit" class="btn-primary btn-submit">Submit Ticket</button>
+          <a href="knowledge-base.html" class="btn-secondary">Cancel</a>
+          <button type="submit" class="btn-primary btn-submit" id="submit-btn">Publish Article</button>
         </div>
       </form>
     </section>
@@ -122,6 +90,6 @@
   <script src="js/api.js"></script>
   <script src="js/realtime.js"></script>
   <script src="js/notifications.js"></script>
-  <script src="js/new-ticket.js"></script>
+  <script src="js/article-form.js"></script>
 </body>
 </html>
