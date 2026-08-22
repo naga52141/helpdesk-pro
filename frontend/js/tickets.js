@@ -23,6 +23,18 @@ const ticketsTitle = document.getElementById("tickets-title");
 const ticketsCount = document.getElementById("tickets-count");
 const errorEl = document.getElementById("tickets-error");
 
+const selectAllCheckbox = document.getElementById("select-all-checkbox");
+const bulkBar = document.getElementById("bulk-actions-bar");
+const bulkCount = document.getElementById("bulk-selected-count");
+const bulkStatus = document.getElementById("bulk-status");
+const bulkPriority = document.getElementById("bulk-priority");
+const bulkAssign = document.getElementById("bulk-assign");
+const bulkApplyBtn = document.getElementById("bulk-apply-btn");
+const bulkClearBtn = document.getElementById("bulk-clear-btn");
+const bulkError = document.getElementById("bulk-error");
+
+const selectedIds = new Set();
+
 function buildFilterQuery() {
   const params = new URLSearchParams();
   const search = searchInput.value.trim();
@@ -56,17 +68,28 @@ async function render() {
 function renderRows(tickets) {
   ticketsBody.innerHTML = "";
 
+  // Rows are rebuilt from scratch on every render (filters, live updates), so any
+  // previous selection no longer corresponds to real checkboxes — drop it rather than
+  // leave the bulk bar showing a count for rows that don't exist anymore.
+  selectedIds.clear();
+  if (selectAllCheckbox) selectAllCheckbox.checked = false;
+  updateBulkBar();
+
   if (tickets.length === 0) {
     const row = document.createElement("tr");
     row.className = "empty-row";
-    row.innerHTML = `<td colspan="8">No tickets match your filters.</td>`;
+    row.innerHTML = `<td colspan="${isStaff ? 9 : 8}">No tickets match your filters.</td>`;
     ticketsBody.appendChild(row);
     return;
   }
 
   tickets.forEach((t) => {
     const row = document.createElement("tr");
+    const checkboxCell = isStaff
+      ? `<td><input type="checkbox" class="row-checkbox" data-id="${t.id}" aria-label="Select ${t.displayId}" /></td>`
+      : "";
     row.innerHTML = `
+      ${checkboxCell}
       <td><a class="ticket-id" href="ticket-detail.html?id=${t.displayId}">${t.displayId}</a></td>
       <td>${t.title}</td>
       <td>${t.category}</td>
@@ -79,6 +102,92 @@ function renderRows(tickets) {
     ticketsBody.appendChild(row);
   });
 }
+
+function updateBulkBar() {
+  if (!isStaff) return;
+  const count = selectedIds.size;
+  bulkBar.hidden = count === 0;
+  bulkCount.textContent = `${count} ticket${count === 1 ? "" : "s"} selected`;
+}
+
+async function loadBulkAssignOptions() {
+  if (!isStaff) return;
+  const agents = await apiFetch("/agents");
+  agents.forEach((agent) => {
+    const opt = document.createElement("option");
+    opt.value = agent.id;
+    opt.textContent = agent.name;
+    bulkAssign.appendChild(opt);
+  });
+}
+
+ticketsBody.addEventListener("change", (event) => {
+  if (!event.target.classList.contains("row-checkbox")) return;
+
+  const id = Number(event.target.dataset.id);
+  if (event.target.checked) {
+    selectedIds.add(id);
+  } else {
+    selectedIds.delete(id);
+  }
+
+  const allCheckboxes = document.querySelectorAll(".row-checkbox");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.checked = allCheckboxes.length > 0 && selectedIds.size === allCheckboxes.length;
+  }
+  updateBulkBar();
+});
+
+selectAllCheckbox?.addEventListener("change", () => {
+  const allCheckboxes = document.querySelectorAll(".row-checkbox");
+  allCheckboxes.forEach((cb) => {
+    cb.checked = selectAllCheckbox.checked;
+    const id = Number(cb.dataset.id);
+    if (selectAllCheckbox.checked) {
+      selectedIds.add(id);
+    } else {
+      selectedIds.delete(id);
+    }
+  });
+  updateBulkBar();
+});
+
+bulkClearBtn?.addEventListener("click", () => {
+  selectedIds.clear();
+  document.querySelectorAll(".row-checkbox").forEach((cb) => (cb.checked = false));
+  if (selectAllCheckbox) selectAllCheckbox.checked = false;
+  updateBulkBar();
+});
+
+bulkApplyBtn?.addEventListener("click", async () => {
+  bulkError.hidden = true;
+
+  const status = bulkStatus.value;
+  const priority = bulkPriority.value;
+  const assignRaw = bulkAssign.value;
+
+  if (!status && !priority && !assignRaw) {
+    bulkError.textContent = "Choose at least one change to apply.";
+    bulkError.hidden = false;
+    return;
+  }
+
+  const body = { ticketIds: Array.from(selectedIds) };
+  if (status) body.status = status;
+  if (priority) body.priority = priority;
+  if (assignRaw) body.assignedTo = assignRaw === "unassign" ? null : Number(assignRaw);
+
+  try {
+    await apiFetch("/tickets/bulk", { method: "PATCH", body: JSON.stringify(body) });
+    bulkStatus.value = "";
+    bulkPriority.value = "";
+    bulkAssign.value = "";
+    await render();
+  } catch (err) {
+    bulkError.textContent = err.message;
+    bulkError.hidden = false;
+  }
+});
 
 [searchInput, statusFilter, priorityFilter, categoryFilter, agentFilter].forEach((el) => {
   el.addEventListener("input", render);
@@ -95,8 +204,10 @@ clearBtn.addEventListener("click", () => {
 });
 
 const session = requireSession();
+const isStaff = session.user.role === "agent" || session.user.role === "admin";
 ticketsTitle.textContent = session.user.role === "user" ? "My tickets" : "All tickets";
 render();
+loadBulkAssignOptions();
 
 // Live-refresh the queue when any ticket changes — staff room membership means users
 // simply won't receive this event, so no extra role check is needed here.

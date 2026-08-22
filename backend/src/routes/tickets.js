@@ -90,6 +90,82 @@ function canAccessTicket(user, createdById) {
   return user.role === "agent" || user.role === "admin" || createdById === user.id;
 }
 
+// Shared by the single-ticket PATCH and the bulk PATCH — applies whichever of
+// status/priority/assignedTo changed, logs history, notifies, and emits live-update
+// events. `existing` is the pre-fetched row so callers doing permission checks against
+// it (the single-ticket route) don't pay for a second SELECT.
+async function applyTicketUpdate(id, existing, { status, priority, assignedTo }, userId) {
+  const updates = [];
+  const params = [];
+  const historyEntries = [];
+
+  if (status && status !== existing.status) {
+    updates.push("status = ?");
+    params.push(status);
+    if (status === "resolved") {
+      updates.push("resolved_at = NOW()");
+    } else if (status === "closed") {
+      updates.push("closed_at = NOW()");
+    } else {
+      updates.push("resolved_at = NULL", "closed_at = NULL");
+    }
+    historyEntries.push(["status", existing.status, status]);
+  }
+
+  if (priority && priority !== existing.priority) {
+    updates.push("priority = ?");
+    params.push(priority);
+    historyEntries.push(["priority", existing.priority, priority]);
+  }
+
+  if (assignedTo !== undefined) {
+    const newAssignedTo = assignedTo || null;
+    if (newAssignedTo !== existing.assigned_to) {
+      updates.push("assigned_to = ?");
+      params.push(newAssignedTo);
+
+      // Store names, not raw ids — the history log is for reading, not for joining.
+      const [oldName, newName] = await Promise.all([
+        existing.assigned_to
+          ? pool.query("SELECT name FROM users WHERE id = ?", [existing.assigned_to]).then(([rows]) => rows[0]?.name)
+          : null,
+        newAssignedTo
+          ? pool.query("SELECT name FROM users WHERE id = ?", [newAssignedTo]).then(([rows]) => rows[0]?.name)
+          : null,
+      ]);
+      historyEntries.push(["assigned_to", oldName || "Unassigned", newName || "Unassigned"]);
+    }
+  }
+
+  if (updates.length === 0) {
+    return getTicketDetail(id);
+  }
+
+  await pool.query(`UPDATE tickets SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
+
+  for (const [field, oldValue, newValue] of historyEntries) {
+    await pool.query(
+      "INSERT INTO ticket_history (ticket_id, changed_by, field, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
+      [id, userId, field, oldValue, newValue]
+    );
+  }
+
+  const displayId = `T-${id}`;
+
+  if (assignedTo && Number(assignedTo) !== existing.assigned_to && Number(assignedTo) !== userId) {
+    await createNotification(Number(assignedTo), id, "assigned", `You were assigned to ${displayId}: ${existing.title}`);
+  }
+
+  if (status && status !== existing.status && existing.created_by !== userId) {
+    await createNotification(existing.created_by, id, "status_change", `${displayId} status changed to ${status.replace("-", " ")}`);
+  }
+
+  emitToStaff("ticket:changed", { id: Number(id) });
+  emitToTicket(id, "ticket:changed", { id: Number(id) });
+
+  return getTicketDetail(id);
+}
+
 // GET /api/tickets — list with optional filters
 router.get("/", asyncHandler(async (req, res) => {
   const { status, priority, category, assignedAgent, search, scope } = req.query;
@@ -189,6 +265,52 @@ router.post("/", asyncHandler(async (req, res) => {
   res.status(201).json(ticket);
 }));
 
+// PATCH /api/tickets/bulk — apply the same status/priority/assignment change to several
+// tickets at once. Agent/admin only; the single-ticket route's "user can reopen their
+// own resolved ticket" exception has no bulk equivalent, so this skips that check
+// entirely rather than trying to generalize it.
+router.patch("/bulk", asyncHandler(async (req, res) => {
+  const { ticketIds, status, priority, assignedTo } = req.body;
+  const { role, id: userId } = req.user;
+
+  if (role !== "agent" && role !== "admin") {
+    return res.status(403).json({ error: "You don't have permission to do that" });
+  }
+  if (!Array.isArray(ticketIds) || ticketIds.length === 0 || !ticketIds.every(isPositiveInt)) {
+    return res.status(400).json({ error: "ticketIds must be a non-empty array of valid ids" });
+  }
+  if (status === undefined && priority === undefined && assignedTo === undefined) {
+    return res.status(400).json({ error: "At least one of status, priority, or assignedTo is required" });
+  }
+  if (status !== undefined && !isOneOf(status, STATUSES)) {
+    return res.status(400).json({ error: `status must be one of ${STATUSES.join(", ")}` });
+  }
+  if (priority !== undefined && !isOneOf(priority, PRIORITIES)) {
+    return res.status(400).json({ error: `priority must be one of ${PRIORITIES.join(", ")}` });
+  }
+  if (assignedTo !== undefined && assignedTo !== null && assignedTo !== "" && !isPositiveInt(assignedTo)) {
+    return res.status(400).json({ error: "assignedTo must be a valid id" });
+  }
+
+  const updatedIds = [];
+  const notFoundIds = [];
+
+  for (const id of ticketIds) {
+    const [[existing]] = await pool.query(
+      "SELECT title, status, priority, assigned_to, created_by FROM tickets WHERE id = ?",
+      [id]
+    );
+    if (!existing) {
+      notFoundIds.push(id);
+      continue;
+    }
+    await applyTicketUpdate(id, existing, { status, priority, assignedTo }, userId);
+    updatedIds.push(id);
+  }
+
+  res.json({ updated: updatedIds.length, notFound: notFoundIds });
+}));
+
 // PATCH /api/tickets/:id — update status, priority, or assignment
 router.patch("/:id", asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -221,75 +343,8 @@ router.patch("/:id", asyncHandler(async (req, res) => {
     }
   }
 
-  const updates = [];
-  const params = [];
-  const historyEntries = [];
-
-  if (status && status !== existing.status) {
-    updates.push("status = ?");
-    params.push(status);
-    if (status === "resolved") {
-      updates.push("resolved_at = NOW()");
-    } else if (status === "closed") {
-      updates.push("closed_at = NOW()");
-    } else {
-      updates.push("resolved_at = NULL", "closed_at = NULL");
-    }
-    historyEntries.push(["status", existing.status, status]);
-  }
-
-  if (priority && priority !== existing.priority) {
-    updates.push("priority = ?");
-    params.push(priority);
-    historyEntries.push(["priority", existing.priority, priority]);
-  }
-
-  if (assignedTo !== undefined) {
-    const newAssignedTo = assignedTo || null;
-    if (newAssignedTo !== existing.assigned_to) {
-      updates.push("assigned_to = ?");
-      params.push(newAssignedTo);
-
-      // Store names, not raw ids — the history log is for reading, not for joining.
-      const [oldName, newName] = await Promise.all([
-        existing.assigned_to
-          ? pool.query("SELECT name FROM users WHERE id = ?", [existing.assigned_to]).then(([rows]) => rows[0]?.name)
-          : null,
-        newAssignedTo
-          ? pool.query("SELECT name FROM users WHERE id = ?", [newAssignedTo]).then(([rows]) => rows[0]?.name)
-          : null,
-      ]);
-      historyEntries.push(["assigned_to", oldName || "Unassigned", newName || "Unassigned"]);
-    }
-  }
-
-  if (updates.length === 0) {
-    return res.json(await getTicketDetail(id));
-  }
-
-  await pool.query(`UPDATE tickets SET ${updates.join(", ")} WHERE id = ?`, [...params, id]);
-
-  for (const [field, oldValue, newValue] of historyEntries) {
-    await pool.query(
-      "INSERT INTO ticket_history (ticket_id, changed_by, field, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
-      [id, userId, field, oldValue, newValue]
-    );
-  }
-
-  const displayId = `T-${id}`;
-
-  if (assignedTo && Number(assignedTo) !== existing.assigned_to && Number(assignedTo) !== userId) {
-    await createNotification(Number(assignedTo), id, "assigned", `You were assigned to ${displayId}: ${existing.title}`);
-  }
-
-  if (status && status !== existing.status && existing.created_by !== userId) {
-    await createNotification(existing.created_by, id, "status_change", `${displayId} status changed to ${status.replace("-", " ")}`);
-  }
-
-  emitToStaff("ticket:changed", { id: Number(id) });
-  emitToTicket(id, "ticket:changed", { id: Number(id) });
-
-  res.json(await getTicketDetail(id));
+  const updated = await applyTicketUpdate(id, existing, { status, priority, assignedTo }, userId);
+  res.json(updated);
 }));
 
 // POST /api/tickets/:id/comments — add a comment
