@@ -8,6 +8,8 @@ const dashboardRouter = require("./routes/dashboard");
 const analyticsRouter = require("./routes/analytics");
 const usersRouter = require("./routes/users");
 const slaRulesRouter = require("./routes/slaRules");
+const notificationsRouter = require("./routes/notifications");
+const { checkSlaWarnings } = require("./utils/slaWarnings");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -26,6 +28,7 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/sla-rules", slaRulesRouter);
+app.use("/api/notifications", notificationsRouter);
 
 app.use((err, req, res, next) => {
   console.error(err);
@@ -35,3 +38,8 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`HelpDesk Pro API listening on http://localhost:${PORT}`);
 });
+
+checkSlaWarnings().catch((err) => console.error("SLA warning check failed:", err));
+setInterval(() => {
+  checkSlaWarnings().catch((err) => console.error("SLA warning check failed:", err));
+}, 5 * 60 * 1000);

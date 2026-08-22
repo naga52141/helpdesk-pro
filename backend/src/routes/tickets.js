@@ -6,6 +6,7 @@ const multer = require("multer");
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
+const { createNotification } = require("../utils/notify");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -178,7 +179,7 @@ router.patch("/:id", asyncHandler(async (req, res) => {
   const { status, priority, assignedTo } = req.body;
   const { role, id: userId } = req.user;
 
-  const [[existing]] = await pool.query("SELECT status, priority, assigned_to, created_by FROM tickets WHERE id = ?", [id]);
+  const [[existing]] = await pool.query("SELECT title, status, priority, assigned_to, created_by FROM tickets WHERE id = ?", [id]);
   if (!existing) return res.status(404).json({ error: "Ticket not found" });
 
   const isAgentOrAdmin = role === "agent" || role === "admin";
@@ -249,6 +250,16 @@ router.patch("/:id", asyncHandler(async (req, res) => {
     );
   }
 
+  const displayId = `T-${id}`;
+
+  if (assignedTo && Number(assignedTo) !== existing.assigned_to && Number(assignedTo) !== userId) {
+    await createNotification(Number(assignedTo), id, "assigned", `You were assigned to ${displayId}: ${existing.title}`);
+  }
+
+  if (status && status !== existing.status && existing.created_by !== userId) {
+    await createNotification(existing.created_by, id, "status_change", `${displayId} status changed to ${status.replace("-", " ")}`);
+  }
+
   res.json(await getTicketDetail(id));
 }));
 
@@ -261,7 +272,7 @@ router.post("/:id/comments", asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "comment is required" });
   }
 
-  const [[ticket]] = await pool.query("SELECT id, created_by FROM tickets WHERE id = ?", [id]);
+  const [[ticket]] = await pool.query("SELECT id, title, created_by, assigned_to FROM tickets WHERE id = ?", [id]);
   if (!ticket || !canAccessTicket(req.user, ticket.created_by)) {
     return res.status(404).json({ error: "Ticket not found" });
   }
@@ -276,6 +287,13 @@ router.post("/:id/comments", asyncHandler(async (req, res) => {
      FROM comments c JOIN users u ON c.user_id = u.id WHERE c.id = ?`,
     [result.insertId]
   );
+
+  // Notify whichever side of the conversation didn't just post.
+  const displayId = `T-${id}`;
+  const notifyTargets = new Set([ticket.created_by, ticket.assigned_to].filter((uid) => uid && uid !== req.user.id));
+  for (const targetUserId of notifyTargets) {
+    await createNotification(targetUserId, id, "comment", `New comment on ${displayId}: ${ticket.title}`);
+  }
 
   res.status(201).json(newComment);
 }));
