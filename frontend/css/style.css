@@ -7,7 +7,50 @@
   --color-muted: #6b7280;
   --color-border: #e2e5ec;
   --color-error: #d64545;
+  --color-hover-bg: #f5f6fa;
+  --color-highlight-bg: #f0f5ff;
+  --color-subtle-bg: #f7f8fb;
+  --color-tab-bg: #f1f3f9;
+  --page-gradient-start: #dfe8fb;
+  --page-gradient-end: #f5f7fd;
   --radius: 12px;
+}
+
+/* Explicit choice always wins; otherwise fall back to the OS preference. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-primary: #4c8dff;
+    --color-primary-dark: #6ea3ff;
+    --color-bg: #0f1420;
+    --color-card: #1b2236;
+    --color-text: #e8ebf5;
+    --color-muted: #9aa3b8;
+    --color-border: #2c3450;
+    --color-error: #ff6b6b;
+    --color-hover-bg: #242c46;
+    --color-highlight-bg: #1c2a4a;
+    --color-subtle-bg: #202944;
+    --color-tab-bg: #1a2136;
+    --page-gradient-start: #0f1420;
+    --page-gradient-end: #171d30;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-primary: #4c8dff;
+  --color-primary-dark: #6ea3ff;
+  --color-bg: #0f1420;
+  --color-card: #1b2236;
+  --color-text: #e8ebf5;
+  --color-muted: #9aa3b8;
+  --color-border: #2c3450;
+  --color-error: #ff6b6b;
+  --color-hover-bg: #242c46;
+  --color-highlight-bg: #1c2a4a;
+  --color-subtle-bg: #202944;
+  --color-tab-bg: #1a2136;
+  --page-gradient-start: #0f1420;
+  --page-gradient-end: #171d30;
 }
 
 * {
@@ -17,8 +60,9 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: linear-gradient(135deg, #dfe8fb 0%, #f5f7fd 100%);
+  background: linear-gradient(135deg, var(--page-gradient-start) 0%, var(--page-gradient-end) 100%);
   color: var(--color-text);
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .page {
@@ -27,6 +71,30 @@ body {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  position: relative;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  background: var(--color-hover-bg);
+}
+
+.theme-toggle-floating {
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .login-card {
@@ -88,7 +156,7 @@ form select {
   outline: none;
   transition: border-color 0.15s ease;
   font-family: inherit;
-  background: #fff;
+  background: var(--color-card);
   color: var(--color-text);
 }
 
@@ -155,7 +223,7 @@ form select:focus {
 .demo-notice {
   margin-top: 18px;
   padding: 14px 16px;
-  background: #f7f8fb;
+  background: var(--color-subtle-bg);
   border: 1px solid var(--color-border);
   border-radius: 8px;
   text-align: center;

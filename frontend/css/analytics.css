@@ -1,5 +1,5 @@
 :root {
-  --viz-surface: #ffffff;
+  --viz-surface: var(--color-card);
   --viz-text-primary: var(--color-text);
   --viz-text-secondary: var(--color-muted);
   --viz-muted: #898781;
@@ -11,6 +11,24 @@
   --viz-warning: #d99000;
   --viz-serious: #c96a3f;
   --viz-critical: #d03b3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --viz-muted: #7d869c;
+    --viz-gridline: #2c3450;
+    --viz-baseline: #3a4262;
+    --viz-series-1: #6ea3ff;
+    --viz-series-1-wash: rgba(110, 163, 255, 0.15);
+  }
+}
+
+:root[data-theme="dark"] {
+  --viz-muted: #7d869c;
+  --viz-gridline: #2c3450;
+  --viz-baseline: #3a4262;
+  --viz-series-1: #6ea3ff;
+  --viz-series-1-wash: rgba(110, 163, 255, 0.15);
 }
 
 .analytics-heading {
@@ -173,7 +191,7 @@
 
 .viz-tooltip {
   position: absolute;
-  background: var(--color-text);
+  background: #1a1f36;
   color: #fff;
   font-size: 12px;
   padding: 8px 10px;

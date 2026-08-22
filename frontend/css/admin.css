@@ -1,7 +1,7 @@
 .admin-tabs {
   display: flex;
   gap: 4px;
-  background: #f1f3f9;
+  background: var(--color-tab-bg);
   border-radius: 10px;
   padding: 4px;
   margin-bottom: 20px;
@@ -77,26 +77,6 @@
   display: flex;
   gap: 8px;
   white-space: nowrap;
-}
-
-.btn-tiny {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--color-text);
-}
-
-.btn-tiny:hover {
-  background: #f5f6fa;
-}
-
-.btn-tiny-danger {
-  color: var(--color-error);
-  border-color: rgba(214, 69, 69, 0.3);
 }
 
 .role-select {
