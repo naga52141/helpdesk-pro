@@ -1,6 +1,6 @@
 import requests
 
-from conftest import API_URL, api_login, unique_ticket_title
+from conftest import API_URL, api_login, unique_ticket_title, wait_for_email
 from pages.dashboard_page import DashboardPage
 from pages.new_ticket_page import NewTicketPage
 from pages.notification_bell import NotificationBell
@@ -120,3 +120,20 @@ def test_status_change_does_not_notify_the_agent_who_made_it(driver, base_url):
         f"{API_URL}/notifications", headers={"Authorization": f"Bearer {user_session['token']}"}
     ).json()
     assert any(ticket["displayId"] in n["message"] and n["type"] == "status_change" for n in user_notifications["notifications"])
+
+
+# Every in-app notification also sends an email through the same createNotification()
+# chokepoint — verified here via a real received message, not just a backend-side claim.
+def test_notification_also_sends_an_email(driver, base_url):
+    user_session, ticket = _create_ticket("user")
+    agent_session = api_login("agent")
+
+    requests.patch(
+        f"{API_URL}/tickets/{ticket['id']}",
+        json={"status": "in-progress"},
+        headers={"Authorization": f"Bearer {agent_session['token']}"},
+    )
+
+    message = wait_for_email(user_session["user"]["email"], subject_contains="HelpDesk Pro notification")
+    assert ticket["displayId"] in message["Text"]
+    assert "status changed to in progress" in message["Text"].lower()

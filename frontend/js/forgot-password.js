@@ -2,8 +2,7 @@ const form = document.getElementById("forgot-form");
 const formError = document.getElementById("form-error");
 const resultBox = document.getElementById("result-box");
 const resultMessage = document.getElementById("result-message");
-const demoCaveat = document.getElementById("demo-caveat");
-const resetLink = document.getElementById("reset-link");
+const devMailHint = document.getElementById("dev-mail-hint");
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -24,13 +23,8 @@ form.addEventListener("submit", async (event) => {
 
     resultMessage.textContent = data.message;
     resultBox.hidden = false;
+    devMailHint.hidden = false;
     form.hidden = true;
-
-    if (data.demoResetToken) {
-      demoCaveat.hidden = false;
-      resetLink.hidden = false;
-      resetLink.href = `reset-password.html?token=${encodeURIComponent(data.demoResetToken)}`;
-    }
   } catch (err) {
     formError.textContent = err.message;
     formError.hidden = false;

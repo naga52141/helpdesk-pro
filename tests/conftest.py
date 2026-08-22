@@ -17,9 +17,12 @@ FRONTEND_DIR = ROOT_DIR / "frontend"
 
 BACKEND_PORT = 4000
 FRONTEND_PORT = 8935
+MAILPIT_PORT = 8025
+MAILPIT_CONTAINER = "hdpro-test-mailpit"
 
 BASE_URL = f"http://localhost:{FRONTEND_PORT}"
 API_URL = f"http://localhost:{BACKEND_PORT}/api"
+MAILPIT_URL = f"http://localhost:{MAILPIT_PORT}"
 
 # Demo accounts seeded by backend/database/seed.sql (see scripts/set-demo-passwords.js)
 DEMO_PASSWORD = "Password123!"
@@ -92,7 +95,31 @@ def frontend_server():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def wait_for_health(backend_server, frontend_server):
+def mailpit_server():
+    """Reuses an already-running Mailpit on :8025, or starts a throwaway container for
+    the test session. Mailpit is a local fake-SMTP server with a REST API to read back
+    what was "sent" — email-dependent tests verify actual delivered content this way,
+    rather than trusting a backend shortcut that bypasses the real send path."""
+    started_container = False
+    if not _port_open(MAILPIT_PORT):
+        subprocess.run(
+            ["docker", "run", "-d", "--rm", "--name", MAILPIT_CONTAINER,
+             "-p", "1025:1025", "-p", "8025:8025", "axllent/mailpit"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True,
+        )
+        started_container = True
+        if not _wait_for_port(MAILPIT_PORT):
+            subprocess.run(["docker", "stop", MAILPIT_CONTAINER], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            raise RuntimeError("Mailpit did not start on port 8025")
+
+    requests.delete(f"{MAILPIT_URL}/api/v1/messages", timeout=5)
+    yield
+    if started_container:
+        subprocess.run(["docker", "stop", MAILPIT_CONTAINER], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def wait_for_health(backend_server, frontend_server, mailpit_server):
     deadline = time.time() + 15
     while time.time() < deadline:
         try:
@@ -159,6 +186,30 @@ def unique_ticket_title():
 
 def unique_name(label):
     return f"{TEST_NAME_PREFIX} {label} {uuid4().hex[:8]}"
+
+
+def wait_for_email(to_email, subject_contains=None, timeout=10):
+    """Polls Mailpit for the most recent email to `to_email`, returning its full body.
+    Sorting by Created and taking the newest match means stale mail from an earlier
+    test run to the same address can't cause a false positive."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        res = requests.get(f"{MAILPIT_URL}/api/v1/messages", timeout=5)
+        res.raise_for_status()
+        matches = [
+            m for m in res.json().get("messages", [])
+            if any(addr["Address"] == to_email for addr in m["To"])
+            and (subject_contains is None or subject_contains in m["Subject"])
+        ]
+        if matches:
+            matches.sort(key=lambda m: m["Created"], reverse=True)
+            full = requests.get(f"{MAILPIT_URL}/api/v1/message/{matches[0]['ID']}", timeout=5)
+            full.raise_for_status()
+            return full.json()
+        time.sleep(0.3)
+
+    subject_note = f" with subject containing {subject_contains!r}" if subject_contains else ""
+    raise AssertionError(f"No email arrived for {to_email}{subject_note} within {timeout}s")
 
 
 @pytest.fixture(scope="session", autouse=True)

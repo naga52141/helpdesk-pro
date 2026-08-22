@@ -18,7 +18,3 @@ class ForgotPasswordPage(BasePage):
 
     def result_message(self):
         return self.find(By.ID, "result-message").text
-
-    def demo_reset_link_href(self):
-        link = self.find(By.ID, "reset-link")
-        return link.get_attribute("href") if link.is_displayed() else None

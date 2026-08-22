@@ -15,6 +15,12 @@ services:
       timeout: 5s
       retries: 20
 
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
   backend:
     build: ./backend
     restart: unless-stopped
@@ -27,6 +33,9 @@ services:
       DB_PASSWORD: ""
       DB_NAME: helpdeskpro
       PORT: 4000
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      FRONTEND_URL: http://localhost:8935
       # Override in a root .env file for anything beyond local/demo use.
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
     ports:

@@ -7,8 +7,10 @@ const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
 const { authRateLimiter } = require("../middleware/rateLimit");
 const { isValidEmail, isPositiveInt } = require("../utils/validate");
+const { sendEmail } = require("../utils/mailer");
 
 const RESET_TOKEN_TTL_MINUTES = 30;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8935";
 
 const router = express.Router();
 
@@ -83,10 +85,7 @@ router.get("/me", requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/forgot-password — always returns the same generic message so the
-// response can't be used to enumerate which emails have an account. There's no real
-// email sending wired up (needs an external SMTP/API provider), so — for this local
-// demo only — the reset token is included directly in the response when the account
-// exists, instead of being emailed.
+// response can't be used to enumerate which emails have an account.
 router.post("/forgot-password", authRateLimiter, asyncHandler(async (req, res) => {
   const { email } = req.body;
   const genericResponse = { message: "If an account exists for that email, a reset link has been generated." };
@@ -106,7 +105,16 @@ router.post("/forgot-password", authRateLimiter, asyncHandler(async (req, res) =
     [user.id, token, RESET_TOKEN_TTL_MINUTES]
   );
 
-  res.json({ ...genericResponse, demoResetToken: token });
+  const resetLink = `${FRONTEND_URL}/reset-password.html?token=${token}`;
+  await sendEmail(
+    email,
+    "Reset your HelpDesk Pro password",
+    `<p>Click the link below to reset your password. This link expires in ${RESET_TOKEN_TTL_MINUTES} minutes.</p>
+     <p><a href="${resetLink}">${resetLink}</a></p>
+     <p>If you didn't request this, you can ignore this email.</p>`
+  );
+
+  res.json(genericResponse);
 }));
 
 // POST /api/auth/reset-password
