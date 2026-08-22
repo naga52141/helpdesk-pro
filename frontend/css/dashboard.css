@@ -319,6 +319,16 @@
   color: var(--color-text);
 }
 
+.attachment-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.attachment-link:hover {
+  text-decoration: underline;
+}
+
 .comments-list {
   display: flex;
   flex-direction: column;

@@ -1,10 +1,38 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const multer = require("multer");
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 router.use(requireAuth);
+
+const UPLOADS_DIR = path.join(__dirname, "../../uploads");
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: UPLOADS_DIR,
+    // Never trust the client's filename for the on-disk name — random name avoids
+    // collisions and path traversal; the original name is kept in the DB for display.
+    filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+function uploadSingle(req, res, next) {
+  upload.single("file")(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      const message = err.code === "LIMIT_FILE_SIZE" ? "File must be 5MB or smaller" : err.message;
+      return res.status(400).json({ error: message });
+    }
+    if (err) return next(err);
+    next();
+  });
+}
 
 async function getTicketDetail(id) {
   const [rows] = await pool.query(
@@ -41,7 +69,14 @@ async function getTicketDetail(id) {
     [id]
   );
 
-  return { ...ticket, comments, history };
+  const [attachments] = await pool.query(
+    `SELECT a.id, a.file_name AS fileName, a.created_at AS createdAt, u.name AS uploadedBy
+     FROM attachments a JOIN users u ON a.uploaded_by = u.id
+     WHERE a.ticket_id = ? ORDER BY a.created_at ASC`,
+    [id]
+  );
+
+  return { ...ticket, comments, history, attachments };
 }
 
 function canAccessTicket(user, createdById) {
@@ -243,6 +278,51 @@ router.post("/:id/comments", asyncHandler(async (req, res) => {
   );
 
   res.status(201).json(newComment);
+}));
+
+// POST /api/tickets/:id/attachments — upload a file to a ticket
+router.post("/:id/attachments", uploadSingle, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const [[ticket]] = await pool.query("SELECT id, created_by FROM tickets WHERE id = ?", [id]);
+  if (!ticket || !canAccessTicket(req.user, ticket.created_by)) {
+    if (req.file) fs.unlink(req.file.path, () => {});
+    return res.status(404).json({ error: "Ticket not found" });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const [result] = await pool.query(
+    "INSERT INTO attachments (ticket_id, file_name, file_path, uploaded_by) VALUES (?, ?, ?, ?)",
+    [id, req.file.originalname, req.file.filename, req.user.id]
+  );
+
+  const [[attachment]] = await pool.query(
+    `SELECT a.id, a.file_name AS fileName, a.created_at AS createdAt, u.name AS uploadedBy
+     FROM attachments a JOIN users u ON a.uploaded_by = u.id WHERE a.id = ?`,
+    [result.insertId]
+  );
+
+  res.status(201).json(attachment);
+}));
+
+// GET /api/tickets/:id/attachments/:attachmentId — download a file
+router.get("/:id/attachments/:attachmentId", asyncHandler(async (req, res) => {
+  const { id, attachmentId } = req.params;
+
+  const [[ticket]] = await pool.query("SELECT id, created_by FROM tickets WHERE id = ?", [id]);
+  if (!ticket || !canAccessTicket(req.user, ticket.created_by)) {
+    return res.status(404).json({ error: "Ticket not found" });
+  }
+
+  const [[attachment]] = await pool.query(
+    "SELECT file_name, file_path FROM attachments WHERE id = ? AND ticket_id = ?",
+    [attachmentId, id]
+  );
+  if (!attachment) return res.status(404).json({ error: "Attachment not found" });
+
+  res.download(path.join(UPLOADS_DIR, attachment.file_path), attachment.file_name);
 }));
 
 module.exports = router;

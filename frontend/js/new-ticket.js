@@ -60,6 +60,21 @@ form.addEventListener("submit", async (event) => {
         deviceInfo: deviceInfo || null,
       }),
     });
+
+    const file = document.getElementById("attachment").files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        await apiFetch(`/tickets/${ticket.id}/attachments`, { method: "POST", body: formData });
+      } catch (uploadErr) {
+        // The ticket itself was created successfully — don't block on a failed attachment.
+        alert(`Ticket ${ticket.displayId} created, but the attachment failed to upload: ${uploadErr.message}`);
+        window.location.href = "dashboard.html";
+        return;
+      }
+    }
+
     alert(`Ticket ${ticket.displayId} created: "${ticket.title}"`);
     window.location.href = "dashboard.html";
   } catch (err) {

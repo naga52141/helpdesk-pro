@@ -2,7 +2,9 @@ const API_BASE = "http://localhost:4000/api";
 
 async function apiFetch(path, options = {}) {
   const session = getSession();
-  const headers = { "Content-Type": "application/json" };
+  const isFormData = options.body instanceof FormData;
+  const headers = {};
+  if (!isFormData) headers["Content-Type"] = "application/json";
   if (session && session.token) headers.Authorization = `Bearer ${session.token}`;
 
   let res;
@@ -28,4 +30,26 @@ async function apiFetch(path, options = {}) {
   }
   if (res.status === 204) return null;
   return res.json();
+}
+
+// A plain <a href> can't carry an Authorization header, so downloads go through
+// fetch() and get saved via a temporary blob URL instead.
+async function downloadFile(path, fileName) {
+  const session = getSession();
+  const headers = {};
+  if (session && session.token) headers.Authorization = `Bearer ${session.token}`;
+
+  const res = await fetch(`${API_BASE}${path}`, { headers });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Download failed (${res.status})`);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
 }

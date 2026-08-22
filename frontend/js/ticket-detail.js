@@ -139,7 +139,7 @@ function runDetailPage(initialTicket, agents) {
     els.category.textContent = ticket.category;
     els.department.textContent = ticket.department;
     els.device.textContent = ticket.deviceInfo || "N/A";
-    els.attachment.textContent = "None";
+    renderAttachments();
     els.created.textContent = new Date(ticket.createdAt).toLocaleString();
     els.slaDue.textContent = ticket.slaDueAt ? new Date(ticket.slaDueAt).toLocaleString() : "N/A";
   }
@@ -172,6 +172,31 @@ function runDetailPage(initialTicket, agents) {
       els.userHint.textContent = "You'll be notified here when there's an update.";
       els.reopenBtn.hidden = true;
     }
+  }
+
+  function renderAttachments() {
+    els.attachment.innerHTML = "";
+    if (ticket.attachments.length === 0) {
+      els.attachment.textContent = "None";
+      return;
+    }
+    ticket.attachments.forEach((a, i) => {
+      const link = document.createElement("a");
+      link.href = "#";
+      link.className = "attachment-link";
+      link.textContent = a.fileName;
+      link.addEventListener("click", async (event) => {
+        event.preventDefault();
+        try {
+          await downloadFile(`/tickets/${ticket.id}/attachments/${a.id}`, a.fileName);
+        } catch (err) {
+          detailErrorEl.textContent = err.message;
+          detailErrorEl.hidden = false;
+        }
+      });
+      els.attachment.appendChild(link);
+      if (i < ticket.attachments.length - 1) els.attachment.appendChild(document.createElement("br"));
+    });
   }
 
   function renderComments() {
