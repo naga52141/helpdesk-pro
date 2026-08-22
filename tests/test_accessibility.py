@@ -125,6 +125,7 @@ def test_status_pill_text_meets_aa_contrast(driver, base_url):
     tickets = TicketsPage(driver, base_url)
     tickets.set_session(session["token"], session["user"])
     tickets.load()
+    tickets.count_text()  # wait for the initial async render to finish before reading rows
 
     pills = driver.find_elements(By.CSS_SELECTOR, ".pill")
     assert pills, "expected at least one status/priority pill to be rendered"
