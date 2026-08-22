@@ -119,6 +119,14 @@ function runDetailPage(initialTicket, agents) {
     userHint: document.getElementById("user-actions-hint"),
     reopenBtn: document.getElementById("reopen-btn"),
     activityList: document.getElementById("activity-list"),
+    csatPrompt: document.getElementById("csat-prompt"),
+    csatStars: document.querySelectorAll(".csat-star"),
+    csatComment: document.getElementById("csat-comment"),
+    csatSubmitBtn: document.getElementById("csat-submit-btn"),
+    csatError: document.getElementById("csat-error"),
+    csatResult: document.getElementById("csat-result"),
+    csatResultValue: document.getElementById("csat-result-value"),
+    csatResultComment: document.getElementById("csat-result-comment"),
   };
 
   agents.forEach((agent) => {
@@ -171,6 +179,28 @@ function runDetailPage(initialTicket, agents) {
     } else {
       els.userHint.textContent = "You'll be notified here when there's an update.";
       els.reopenBtn.hidden = true;
+    }
+
+    renderCsat();
+  }
+
+  function renderCsat() {
+    const isRateable = !isAgentOrAdmin && (ticket.status === "resolved" || ticket.status === "closed");
+
+    if (!isRateable) {
+      els.csatPrompt.hidden = true;
+      els.csatResult.hidden = true;
+      return;
+    }
+
+    if (ticket.csatRating) {
+      els.csatPrompt.hidden = true;
+      els.csatResult.hidden = false;
+      els.csatResultValue.textContent = ticket.csatRating;
+      els.csatResultComment.textContent = ticket.csatComment ? ` — "${ticket.csatComment}"` : "";
+    } else {
+      els.csatPrompt.hidden = false;
+      els.csatResult.hidden = true;
     }
   }
 
@@ -278,6 +308,30 @@ function runDetailPage(initialTicket, agents) {
 
   els.reopenBtn.addEventListener("click", () => {
     patchTicket({ status: "in-progress" });
+  });
+
+  let selectedRating = null;
+  els.csatStars.forEach((star) => {
+    star.addEventListener("click", () => {
+      selectedRating = Number(star.dataset.value);
+      els.csatStars.forEach((s) => s.classList.toggle("selected", Number(s.dataset.value) <= selectedRating));
+      els.csatSubmitBtn.disabled = false;
+    });
+  });
+
+  els.csatSubmitBtn.addEventListener("click", async () => {
+    if (!selectedRating) return;
+    els.csatError.hidden = true;
+    try {
+      ticket = await apiFetch(`/tickets/${ticket.id}/csat`, {
+        method: "POST",
+        body: JSON.stringify({ rating: selectedRating, comment: els.csatComment.value.trim() || undefined }),
+      });
+      renderCsat();
+    } catch (err) {
+      els.csatError.textContent = err.message;
+      els.csatError.hidden = false;
+    }
   });
 
   document.getElementById("comment-form").addEventListener("submit", async (event) => {

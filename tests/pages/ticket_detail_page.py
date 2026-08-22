@@ -74,3 +74,23 @@ class TicketDetailPage(BasePage):
     def click_attachment_link(self):
         self.find(By.CSS_SELECTOR, "#d-attachment .attachment-link").click()
         return self
+
+    def csat_prompt_visible(self):
+        return self.find(By.ID, "csat-prompt").is_displayed()
+
+    def csat_result_visible(self):
+        return self.find(By.ID, "csat-result").is_displayed()
+
+    def csat_result_text(self):
+        return self.find(By.ID, "csat-result").text
+
+    def submit_csat(self, rating, comment=None):
+        self.find_clickable(By.CSS_SELECTOR, f'.csat-star[data-value="{rating}"]').click()
+        if comment:
+            self.find(By.ID, "csat-comment").send_keys(comment)
+        self.find_clickable(By.ID, "csat-submit-btn").click()
+        WebDriverWait(self.driver, 10).until(lambda d: self.csat_result_visible())
+        return self
+
+    def csat_error_text(self):
+        return self.wait_until_visible(By.ID, "csat-error").text

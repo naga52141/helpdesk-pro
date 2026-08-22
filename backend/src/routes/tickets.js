@@ -48,7 +48,8 @@ async function getTicketDetail(id) {
             cu.name AS requesterName, cu.email AS requesterEmail,
             t.device_info AS deviceInfo,
             t.created_at AS createdAt, t.updated_at AS updatedAt, t.sla_due_at AS slaDueAt,
-            t.resolved_at AS resolvedAt, t.closed_at AS closedAt
+            t.resolved_at AS resolvedAt, t.closed_at AS closedAt,
+            t.csat_rating AS csatRating, t.csat_comment AS csatComment, t.csat_submitted_at AS csatSubmittedAt
      FROM tickets t
      JOIN categories c ON t.category_id = c.id
      JOIN departments d ON t.department_id = d.id
@@ -319,6 +320,38 @@ router.post("/:id/comments", asyncHandler(async (req, res) => {
   }
 
   res.status(201).json(newComment);
+}));
+
+// POST /api/tickets/:id/csat — the requester rates a resolved/closed ticket, once
+router.post("/:id/csat", asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { rating, comment } = req.body;
+
+  const ratingNum = Number(rating);
+  if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+    return res.status(400).json({ error: "rating must be an integer from 1 to 5" });
+  }
+
+  const [[ticket]] = await pool.query(
+    "SELECT id, created_by, status, csat_rating FROM tickets WHERE id = ?",
+    [id]
+  );
+  if (!ticket || ticket.created_by !== req.user.id) {
+    return res.status(404).json({ error: "Ticket not found" });
+  }
+  if (ticket.status !== "resolved" && ticket.status !== "closed") {
+    return res.status(400).json({ error: "You can only rate a resolved or closed ticket" });
+  }
+  if (ticket.csat_rating !== null) {
+    return res.status(409).json({ error: "This ticket has already been rated" });
+  }
+
+  await pool.query(
+    "UPDATE tickets SET csat_rating = ?, csat_comment = ?, csat_submitted_at = NOW() WHERE id = ?",
+    [ratingNum, comment || null, id]
+  );
+
+  res.json(await getTicketDetail(id));
 }));
 
 // POST /api/tickets/:id/attachments — upload a file to a ticket

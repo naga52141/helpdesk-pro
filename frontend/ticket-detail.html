@@ -153,6 +153,24 @@
             <h3>Ticket actions</h3>
             <p class="text-muted" id="user-actions-hint">You'll be notified here when there's an update.</p>
             <button type="button" id="reopen-btn" class="btn-secondary" hidden>Reopen Ticket</button>
+
+            <div id="csat-prompt" hidden>
+              <label>How was your experience?</label>
+              <div class="csat-stars" id="csat-stars">
+                <button type="button" class="csat-star" data-value="1">1</button>
+                <button type="button" class="csat-star" data-value="2">2</button>
+                <button type="button" class="csat-star" data-value="3">3</button>
+                <button type="button" class="csat-star" data-value="4">4</button>
+                <button type="button" class="csat-star" data-value="5">5</button>
+              </div>
+              <textarea id="csat-comment" rows="2" placeholder="Anything else? (optional)"></textarea>
+              <button type="button" id="csat-submit-btn" class="btn-primary btn-submit" disabled>Submit rating</button>
+              <p class="form-error" id="csat-error" hidden></p>
+            </div>
+
+            <div id="csat-result" hidden>
+              <p class="text-muted">You rated this ticket <strong id="csat-result-value"></strong>/5<span id="csat-result-comment"></span>.</p>
+            </div>
           </section>
         </div>
       </div>

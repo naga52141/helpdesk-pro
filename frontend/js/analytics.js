@@ -70,6 +70,11 @@ function renderKpis(data) {
 
   const totalTickets = data.byPriority.reduce((sum, p) => sum + p.count, 0);
   document.getElementById("kpi-total-tickets").textContent = totalTickets;
+
+  const csat = data.csat;
+  document.getElementById("kpi-csat").textContent = csat.average === null ? "—" : `${csat.average} / 5`;
+  document.getElementById("kpi-csat-sub").textContent =
+    csat.total === 0 ? "No ratings yet" : `Based on ${csat.total} rating${csat.total === 1 ? "" : "s"}`;
 }
 
 function renderCategoryChart(byCategory) {
@@ -124,7 +129,7 @@ function renderAgentTable(agentPerformance) {
   body.innerHTML = "";
 
   if (agentPerformance.length === 0) {
-    body.innerHTML = `<tr><td colspan="5" class="empty-chart-state">No agents yet.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="6" class="empty-chart-state">No agents yet.</td></tr>`;
     return;
   }
 
@@ -136,6 +141,7 @@ function renderAgentTable(agentPerformance) {
       <td>${a.resolved}</td>
       <td>${formatHours(a.avgResolutionHours)}</td>
       <td>${formatPercentage(a.slaCompliancePercentage)}</td>
+      <td>${a.avgCsat === null ? "—" : `${a.avgCsat} / 5`}</td>
     `;
     body.appendChild(row);
   });

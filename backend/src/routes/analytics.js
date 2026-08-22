@@ -68,7 +68,8 @@ router.get("/summary", asyncHandler(async (req, res) => {
        SUM(t.status IN ('resolved', 'closed')) AS resolved,
        AVG(CASE WHEN t.resolved_at IS NOT NULL THEN TIMESTAMPDIFF(HOUR, t.created_at, t.resolved_at) END) AS avgResolutionHours,
        SUM(CASE WHEN t.resolved_at IS NOT NULL THEN t.resolved_at <= t.sla_due_at END) AS slaMet,
-       SUM(t.resolved_at IS NOT NULL) AS slaEligible
+       SUM(t.resolved_at IS NOT NULL) AS slaEligible,
+       AVG(t.csat_rating) AS avgCsat
      FROM users u
      LEFT JOIN tickets t ON t.assigned_to = u.id
      WHERE u.role = 'agent'
@@ -82,7 +83,16 @@ router.get("/summary", asyncHandler(async (req, res) => {
     resolved: Number(r.resolved) || 0,
     avgResolutionHours: r.avgResolutionHours !== null ? Number(r.avgResolutionHours) : null,
     slaCompliancePercentage: Number(r.slaEligible) > 0 ? Math.round((Number(r.slaMet) / Number(r.slaEligible)) * 1000) / 10 : null,
+    avgCsat: r.avgCsat !== null ? Math.round(Number(r.avgCsat) * 10) / 10 : null,
   }));
+
+  const [[csatRow]] = await pool.query(
+    "SELECT COUNT(*) AS total, AVG(csat_rating) AS avgRating FROM tickets WHERE csat_rating IS NOT NULL"
+  );
+  const csat = {
+    total: Number(csatRow.total),
+    average: csatRow.avgRating !== null ? Math.round(Number(csatRow.avgRating) * 10) / 10 : null,
+  };
 
   res.json({
     byCategory: byCategoryRows.map((r) => ({ category: r.category, count: Number(r.count) })),
@@ -91,6 +101,7 @@ router.get("/summary", asyncHandler(async (req, res) => {
     avgResolutionHours,
     slaCompliance,
     agentPerformance,
+    csat,
   });
 }));
 
