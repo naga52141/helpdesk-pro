@@ -100,3 +100,13 @@ CREATE TABLE notifications (
   FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
   INDEX idx_user_unread (user_id, is_read)
 );
+
+CREATE TABLE password_reset_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token VARCHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

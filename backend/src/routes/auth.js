@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
@@ -6,6 +7,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
 const { authRateLimiter } = require("../middleware/rateLimit");
 const { isValidEmail, isPositiveInt } = require("../utils/validate");
+
+const RESET_TOKEN_TTL_MINUTES = 30;
 
 const router = express.Router();
 
@@ -77,6 +80,59 @@ router.post("/login", authRateLimiter, asyncHandler(async (req, res) => {
 // GET /api/auth/me — used by the frontend to validate a stored session
 router.get("/me", requireAuth, asyncHandler(async (req, res) => {
   res.json({ user: req.user });
+}));
+
+// POST /api/auth/forgot-password — always returns the same generic message so the
+// response can't be used to enumerate which emails have an account. There's no real
+// email sending wired up (needs an external SMTP/API provider), so — for this local
+// demo only — the reset token is included directly in the response when the account
+// exists, instead of being emailed.
+router.post("/forgot-password", authRateLimiter, asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const genericResponse = { message: "If an account exists for that email, a reset link has been generated." };
+
+  if (!isValidEmail(email)) {
+    return res.json(genericResponse);
+  }
+
+  const [[user]] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
+  if (!user) {
+    return res.json(genericResponse);
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  await pool.query(
+    "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))",
+    [user.id, token, RESET_TOKEN_TTL_MINUTES]
+  );
+
+  res.json({ ...genericResponse, demoResetToken: token });
+}));
+
+// POST /api/auth/reset-password
+router.post("/reset-password", authRateLimiter, asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: "token and password are required" });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: "Password must be at least 8 characters" });
+  }
+
+  const [[resetToken]] = await pool.query(
+    "SELECT id, user_id, expires_at, used_at FROM password_reset_tokens WHERE token = ?",
+    [token]
+  );
+  if (!resetToken || resetToken.used_at || new Date(resetToken.expires_at) < new Date()) {
+    return res.status(400).json({ error: "This reset link is invalid or has expired" });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  await pool.query("UPDATE users SET password_hash = ? WHERE id = ?", [passwordHash, resetToken.user_id]);
+  await pool.query("UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ?", [resetToken.id]);
+
+  res.json({ message: "Password updated. You can now log in with your new password." });
 }));
 
 module.exports = router;

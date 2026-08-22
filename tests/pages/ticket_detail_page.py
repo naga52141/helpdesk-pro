@@ -30,6 +30,9 @@ class TicketDetailPage(BasePage):
     def agent_controls_visible(self):
         return self.find(By.ID, "agent-controls").is_displayed()
 
+    def reopen_button_visible(self):
+        return self.find(By.ID, "reopen-btn").is_displayed()
+
     def set_status(self, status_value, expected_text):
         Select(self.find(By.ID, "status-select")).select_by_value(status_value)
         self.find_clickable(By.ID, "status-btn").click()

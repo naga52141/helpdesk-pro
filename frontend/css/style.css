@@ -104,7 +104,7 @@ form select:focus {
 }
 
 .btn-primary {
-  display: inline-block;
+  display: none;
   box-sizing: border-box;
   width: 100%;
   padding: 11px 0;
@@ -118,6 +118,13 @@ form select:focus {
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s ease;
+}
+
+/* A class-based `display` always beats the UA [hidden] rule at equal specificity, so
+   any hidden .btn-primary/.btn-secondary needs the visible state spelled out here
+   rather than relying on the hidden attribute alone (see the notification-dropdown fix). */
+.btn-primary:not([hidden]) {
+  display: inline-block;
 }
 
 .btn-primary:visited {
@@ -143,4 +150,29 @@ form select:focus {
 
 .signup-hint a:hover {
   text-decoration: underline;
+}
+
+.demo-notice {
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: #f7f8fb;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.demo-notice p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.demo-caveat {
+  color: var(--color-muted) !important;
+  font-size: 12px !important;
+}
+
+.demo-notice .btn-primary {
+  width: auto;
+  padding: 9px 18px;
 }

@@ -670,7 +670,7 @@
 }
 
 .btn-secondary {
-  display: inline-flex;
+  display: none;
   align-items: center;
   padding: 10px 18px;
   border-radius: 8px;
@@ -681,6 +681,11 @@
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+}
+
+/* See the matching note on .btn-primary in style.css. */
+.btn-secondary:not([hidden]) {
+  display: inline-flex;
 }
 
 .btn-secondary:hover {

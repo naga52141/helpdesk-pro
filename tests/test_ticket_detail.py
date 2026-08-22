@@ -66,6 +66,29 @@ def test_activity_log_records_assignment_and_status_changes(driver, base_url):
     assert any("status" in a.lower() and "in progress" in a.lower() for a in activity)
 
 
+# Regression coverage for a CSS-specificity bug (same class as the notification dropdown
+# fix) where .btn-secondary's unconditional `display` beat the `hidden` attribute, so
+# "Reopen Ticket" rendered visible on tickets that were nowhere near resolved.
+def test_reopen_button_only_shows_on_resolved_tickets(driver, base_url):
+    ticket = _create_ticket_via_api("user")  # starts "open"
+
+    user_session = api_login("user")
+    detail = TicketDetailPage(driver, base_url)
+    detail.set_session(user_session["token"], user_session["user"])
+    detail.load(ticket["displayId"])
+    assert detail.reopen_button_visible() is False
+
+    agent_session = api_login("agent")
+    requests.patch(
+        f"{API_URL}/tickets/{ticket['id']}",
+        json={"status": "resolved"},
+        headers={"Authorization": f"Bearer {agent_session['token']}"},
+    )
+
+    detail.load(ticket["displayId"])
+    assert detail.reopen_button_visible() is True
+
+
 def test_user_cannot_access_a_ticket_they_did_not_create(driver, base_url):
     # user2 (Demo User) opens a ticket created by user (Sam Torres) — should be treated as not found.
     ticket = _create_ticket_via_api("user")
