@@ -20,8 +20,13 @@ class AdminPage(BasePage):
         return self
 
     def _user_row(self, email):
-        self.find(By.ID, "users-table-body")
-        return next(r for r in self.driver.find_elements(By.CSS_SELECTOR, "#users-table-body tr") if email in r.text)
+        # #users-table-body exists (empty) before loadUsers()'s fetch resolves — wait for
+        # a matching row to actually appear, not just for the container to exist.
+        def _find(d):
+            rows = d.find_elements(By.CSS_SELECTOR, "#users-table-body tr")
+            return next((r for r in rows if email in r.text), False)
+
+        return WebDriverWait(self.driver, 10).until(_find)
 
     def user_role_text(self, email):
         row = self._user_row(email)
@@ -91,10 +96,12 @@ class AdminPage(BasePage):
         return self.wait_until_visible(By.ID, "category-error").text
 
     def set_sla_rule(self, priority, response_hours, resolution_hours):
-        row = next(
-            r for r in self.driver.find_elements(By.CSS_SELECTOR, "#sla-table-body tr")
-            if r.text.lower().startswith(priority)
-        )
+        # Same story as _user_row — wait for the matching row, not just the empty container.
+        def _find(d):
+            rows = d.find_elements(By.CSS_SELECTOR, "#sla-table-body tr")
+            return next((r for r in rows if r.text.lower().startswith(priority)), False)
+
+        row = WebDriverWait(self.driver, 10).until(_find)
         response_input = row.find_element(By.CSS_SELECTOR, 'input[data-field="response"]')
         resolution_input = row.find_element(By.CSS_SELECTOR, 'input[data-field="resolution"]')
         response_input.clear()

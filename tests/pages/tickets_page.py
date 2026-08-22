@@ -14,7 +14,11 @@ class TicketsPage(BasePage):
         return self.find(By.ID, "tickets-title").text
 
     def count_text(self):
-        return self.find(By.ID, "tickets-count").text
+        # #tickets-count starts empty and is only filled in once the initial async
+        # render() finishes — wait for real content, not just the element's presence.
+        return WebDriverWait(self.driver, 10).until(
+            lambda d: d.find_element(By.ID, "tickets-count").text or False
+        )
 
     def row_titles(self):
         """Re-reads rows on staleness — the queue re-renders on every filter change,

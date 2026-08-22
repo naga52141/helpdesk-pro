@@ -8,6 +8,13 @@ from .base_page import BasePage
 class TicketDetailPage(BasePage):
     def load(self, display_id):
         self.driver.get(f"{self.base_url}/ticket-detail.html?id={display_id}")
+        # ticket-detail.js fetches the ticket + agents before rendering anything — wait for
+        # that to actually finish (content or not-found becomes visible) before any getter
+        # below reads the DOM, or a read can land in the pre-render empty state.
+        WebDriverWait(self.driver, 10).until(
+            lambda d: d.find_element(By.ID, "ticket-content").is_displayed()
+            or d.find_element(By.ID, "not-found").is_displayed()
+        )
         return self
 
     def is_not_found(self):
