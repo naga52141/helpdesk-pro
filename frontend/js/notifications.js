@@ -81,6 +81,7 @@
   });
 
   markAllBtn.addEventListener("click", async () => {
+    dropdown.hidden = true;
     try {
       await apiFetch("/notifications/read-all", { method: "POST" });
       loadNotifications();
