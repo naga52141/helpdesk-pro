@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 
 const authRouter = require("./routes/auth");
 const lookupsRouter = require("./routes/lookups");
@@ -14,6 +15,9 @@ const { checkSlaWarnings } = require("./utils/slaWarnings");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// crossOriginResourcePolicy is disabled — the frontend is served from a different origin
+// and fetches JSON + downloads files from here, which the default same-origin policy blocks.
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(express.json());
 

@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
+const { authRateLimiter } = require("../middleware/rateLimit");
+const { isValidEmail, isPositiveInt } = require("../utils/validate");
 
 const router = express.Router();
 
@@ -20,14 +22,20 @@ function publicUser(user) {
 }
 
 // POST /api/auth/register — self-registration always creates a 'user' role account
-router.post("/register", asyncHandler(async (req, res) => {
+router.post("/register", authRateLimiter, asyncHandler(async (req, res) => {
   const { name, email, password, departmentId } = req.body;
 
   if (!name || !email || !password || !departmentId) {
     return res.status(400).json({ error: "name, email, password, and departmentId are required" });
   }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: "Please enter a valid email address" });
+  }
   if (password.length < 8) {
     return res.status(400).json({ error: "Password must be at least 8 characters" });
+  }
+  if (!isPositiveInt(departmentId)) {
+    return res.status(400).json({ error: "departmentId must be a valid id" });
   }
 
   const [[existing]] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
@@ -46,7 +54,7 @@ router.post("/register", asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/login
-router.post("/login", asyncHandler(async (req, res) => {
+router.post("/login", authRateLimiter, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {

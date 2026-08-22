@@ -7,6 +7,10 @@ const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
 const { createNotification } = require("../utils/notify");
+const { isOneOf, isPositiveInt } = require("../utils/validate");
+
+const PRIORITIES = ["low", "medium", "high", "critical"];
+const STATUSES = ["open", "in-progress", "resolved", "closed"];
 
 const router = express.Router();
 router.use(requireAuth);
@@ -159,6 +163,15 @@ router.post("/", asyncHandler(async (req, res) => {
   if (!title || !description || !categoryId || !priority || !departmentId) {
     return res.status(400).json({ error: "title, description, categoryId, priority, departmentId are required" });
   }
+  if (!isOneOf(priority, PRIORITIES)) {
+    return res.status(400).json({ error: `priority must be one of ${PRIORITIES.join(", ")}` });
+  }
+  if (!isPositiveInt(categoryId) || !isPositiveInt(departmentId)) {
+    return res.status(400).json({ error: "categoryId and departmentId must be valid ids" });
+  }
+  if (assignedTo !== undefined && assignedTo !== null && !isPositiveInt(assignedTo)) {
+    return res.status(400).json({ error: "assignedTo must be a valid id" });
+  }
 
   const [[slaRule]] = await pool.query("SELECT resolution_hours FROM sla_rules WHERE priority = ?", [priority]);
   const resolutionHours = slaRule ? slaRule.resolution_hours : 72;
@@ -178,6 +191,16 @@ router.patch("/:id", asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, priority, assignedTo } = req.body;
   const { role, id: userId } = req.user;
+
+  if (status !== undefined && !isOneOf(status, STATUSES)) {
+    return res.status(400).json({ error: `status must be one of ${STATUSES.join(", ")}` });
+  }
+  if (priority !== undefined && !isOneOf(priority, PRIORITIES)) {
+    return res.status(400).json({ error: `priority must be one of ${PRIORITIES.join(", ")}` });
+  }
+  if (assignedTo !== undefined && assignedTo !== null && assignedTo !== "" && !isPositiveInt(assignedTo)) {
+    return res.status(400).json({ error: "assignedTo must be a valid id" });
+  }
 
   const [[existing]] = await pool.query("SELECT title, status, priority, assigned_to, created_by FROM tickets WHERE id = ?", [id]);
   if (!existing) return res.status(404).json({ error: "Ticket not found" });
