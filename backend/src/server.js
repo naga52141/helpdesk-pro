@@ -10,7 +10,7 @@ const analyticsRouter = require("./routes/analytics");
 const usersRouter = require("./routes/users");
 const slaRulesRouter = require("./routes/slaRules");
 const notificationsRouter = require("./routes/notifications");
-const { checkSlaWarnings } = require("./utils/slaWarnings");
+const { checkSlaWarnings, checkSlaBreaches } = require("./utils/slaWarnings");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -43,7 +43,10 @@ app.listen(PORT, () => {
   console.log(`HelpDesk Pro API listening on http://localhost:${PORT}`);
 });
 
-checkSlaWarnings().catch((err) => console.error("SLA warning check failed:", err));
-setInterval(() => {
+function runSlaChecks() {
   checkSlaWarnings().catch((err) => console.error("SLA warning check failed:", err));
-}, 5 * 60 * 1000);
+  checkSlaBreaches().catch((err) => console.error("SLA breach check failed:", err));
+}
+
+runSlaChecks();
+setInterval(runSlaChecks, 5 * 60 * 1000);

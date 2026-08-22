@@ -19,7 +19,9 @@ INSERT INTO users (name, email, password_hash, role, department_id) VALUES
   ('Priya Nair', 'priya.nair@helpdeskpro.local', 'placeholder-hash', 'agent', 3),
   ('Jordan Lee', 'jordan.lee@helpdeskpro.local', 'placeholder-hash', 'agent', 2),
   ('Sam Torres', 'sam.torres@company.com', 'placeholder-hash', 'user', 1),
-  ('Demo User', 'demo.user@company.com', 'placeholder-hash', 'user', 4);
+  ('Demo User', 'demo.user@company.com', 'placeholder-hash', 'user', 4),
+  -- Not a real login — used only to attribute automated changes (e.g. SLA auto-escalation) in the Activity log.
+  ('System', 'system@helpdeskpro.local', 'placeholder-hash', 'admin', 1);
 
 -- created_at is set explicitly (rather than left to default NOW()) so it precedes
 -- each ticket's resolved_at/sla_due_at — otherwise resolution-time math goes negative.
