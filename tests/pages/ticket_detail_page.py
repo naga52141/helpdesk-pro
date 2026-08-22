@@ -45,3 +45,22 @@ class TicketDetailPage(BasePage):
         self.find(By.ID, "comments-list")
         comments = self.driver.find_elements(By.CSS_SELECTOR, "#comments-list .comment")
         return [c.text for c in comments]
+
+    def assign_to(self, agent_name):
+        before = self.find(By.ID, "d-agent").text
+        Select(self.find(By.ID, "assign-select")).select_by_visible_text(agent_name)
+        self.find_clickable(By.ID, "assign-btn").click()
+        WebDriverWait(self.driver, 10).until(lambda d: self.find(By.ID, "d-agent").text != before)
+        return self
+
+    def activity_texts(self):
+        self.find(By.ID, "activity-list")
+        return [i.text for i in self.driver.find_elements(By.CSS_SELECTOR, ".activity-item")]
+
+    def attachment_link_text(self):
+        links = self.driver.find_elements(By.CSS_SELECTOR, "#d-attachment .attachment-link")
+        return links[0].text if links else None
+
+    def click_attachment_link(self):
+        self.find(By.CSS_SELECTOR, "#d-attachment .attachment-link").click()
+        return self

@@ -1,5 +1,6 @@
 import socket
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 from uuid import uuid4
@@ -33,6 +34,7 @@ USERS = {
 # Markers so test-created data is easy to find and wipe afterward.
 TEST_TICKET_PREFIX = "[Selenium]"
 TEST_EMAIL_DOMAIN = "selenium-test.local"
+TEST_NAME_PREFIX = "[Selenium]"
 
 DB_CONFIG = dict(host="localhost", user="root", password="", database="helpdeskpro", cursorclass=pymysql.cursors.DictCursor)
 
@@ -103,12 +105,20 @@ def wait_for_health(backend_server, frontend_server):
 
 
 @pytest.fixture
-def driver():
+def download_dir():
+    with tempfile.TemporaryDirectory() as d:
+        yield d
+
+
+@pytest.fixture
+def driver(download_dir):
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--window-size=1280,900")
     drv = webdriver.Chrome(options=options)
     drv.implicitly_wait(0)
+    # Headless Chrome blocks downloads by default — needed for the attachment download test.
+    drv.execute_cdp_cmd("Page.setDownloadBehavior", {"behavior": "allow", "downloadPath": download_dir})
     yield drv
     drv.quit()
 
@@ -133,14 +143,33 @@ def unique_ticket_title():
     return f"{TEST_TICKET_PREFIX} Test ticket {uuid4().hex[:8]}"
 
 
+def unique_name(label):
+    return f"{TEST_NAME_PREFIX} {label} {uuid4().hex[:8]}"
+
+
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_data(wait_for_health):
     yield
     conn = pymysql.connect(**DB_CONFIG)
     try:
         with conn.cursor() as cur:
+            # Attachment rows cascade-delete with their ticket, but the uploaded files on
+            # disk don't — grab their paths first so they can be removed too.
+            cur.execute(
+                """SELECT a.file_path FROM attachments a JOIN tickets t ON a.ticket_id = t.id
+                   WHERE t.title LIKE %s""",
+                (f"{TEST_TICKET_PREFIX}%",),
+            )
+            upload_paths = [row["file_path"] for row in cur.fetchall()]
+
             cur.execute("DELETE FROM tickets WHERE title LIKE %s", (f"{TEST_TICKET_PREFIX}%",))
             cur.execute("DELETE FROM users WHERE email LIKE %s", (f"%@{TEST_EMAIL_DOMAIN}",))
+            cur.execute("DELETE FROM categories WHERE name LIKE %s", (f"{TEST_NAME_PREFIX}%",))
+            cur.execute("DELETE FROM departments WHERE name LIKE %s", (f"{TEST_NAME_PREFIX}%",))
         conn.commit()
+
+        uploads_dir = BACKEND_DIR / "uploads"
+        for file_path in upload_paths:
+            (uploads_dir / file_path).unlink(missing_ok=True)
     finally:
         conn.close()

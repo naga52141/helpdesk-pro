@@ -48,6 +48,24 @@ def test_agent_can_post_comment(driver, base_url):
     assert any("Looking into this now." in c for c in comments)
 
 
+def test_activity_log_records_assignment_and_status_changes(driver, base_url):
+    ticket = _create_ticket_via_api("user")
+
+    agent_session = api_login("agent")
+    detail = TicketDetailPage(driver, base_url)
+    detail.set_session(agent_session["token"], agent_session["user"])
+    detail.load(ticket["displayId"])
+
+    assert detail.activity_texts() == []
+
+    detail.assign_to("Alex Kim")
+    detail.set_status("in-progress", expected_text="In progress")
+
+    activity = detail.activity_texts()
+    assert any("assignment" in a.lower() and "alex kim" in a.lower() for a in activity)
+    assert any("status" in a.lower() and "in progress" in a.lower() for a in activity)
+
+
 def test_user_cannot_access_a_ticket_they_did_not_create(driver, base_url):
     # user2 (Demo User) opens a ticket created by user (Sam Torres) — should be treated as not found.
     ticket = _create_ticket_via_api("user")

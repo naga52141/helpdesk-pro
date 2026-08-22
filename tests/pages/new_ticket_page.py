@@ -10,7 +10,7 @@ class NewTicketPage(BasePage):
         self.driver.get(f"{self.base_url}/new-ticket.html")
         return self
 
-    def submit_ticket(self, title, description, category="Hardware", priority="low", department="IT", device_info=""):
+    def submit_ticket(self, title, description, category="Hardware", priority="low", department="IT", device_info="", file_path=None):
         self.find(By.ID, "title").send_keys(title)
         self.find(By.ID, "description").send_keys(description)
 
@@ -21,6 +21,10 @@ class NewTicketPage(BasePage):
 
         if device_info:
             self.find(By.ID, "device-info").send_keys(device_info)
+
+        if file_path:
+            # Selenium's normal way to "choose a file": send the absolute path to the <input type=file>.
+            self.find(By.ID, "attachment").send_keys(file_path)
 
         self.find_clickable(By.CSS_SELECTOR, ".btn-submit").click()
         return self
