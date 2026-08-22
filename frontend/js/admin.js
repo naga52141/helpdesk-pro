@@ -19,8 +19,12 @@ if (session.user.role !== "admin") {
 function initTabs() {
   document.querySelectorAll(".admin-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".admin-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".admin-tab").forEach((t) => {
+        t.classList.remove("active");
+        t.setAttribute("aria-selected", "false");
+      });
       tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
       document.querySelectorAll(".admin-panel").forEach((p) => (p.hidden = true));
       document.getElementById(`panel-${tab.dataset.tab}`).hidden = false;
     });

@@ -45,7 +45,7 @@
       item.appendChild(timeEl);
 
       item.addEventListener("click", async () => {
-        dropdown.hidden = true;
+        setDropdownOpen(false);
         if (!n.isRead) {
           try {
             await apiFetch(`/notifications/${n.id}/read`, { method: "PATCH" });
@@ -69,19 +69,24 @@
     }
   }
 
+  function setDropdownOpen(isOpen) {
+    dropdown.hidden = !isOpen;
+    bellBtn.setAttribute("aria-expanded", String(isOpen));
+  }
+
   bellBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    dropdown.hidden = !dropdown.hidden;
+    setDropdownOpen(dropdown.hidden);
   });
 
   document.addEventListener("click", (event) => {
     if (!dropdown.hidden && !dropdown.contains(event.target) && event.target !== bellBtn) {
-      dropdown.hidden = true;
+      setDropdownOpen(false);
     }
   });
 
   markAllBtn.addEventListener("click", async () => {
-    dropdown.hidden = true;
+    setDropdownOpen(false);
     try {
       await apiFetch("/notifications/read-all", { method: "POST" });
       loadNotifications();

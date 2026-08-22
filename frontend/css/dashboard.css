@@ -3,6 +3,25 @@
   min-height: 100vh;
 }
 
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  background: var(--color-accent);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  z-index: 100;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
 .navbar {
   display: flex;
   align-items: center;
@@ -212,7 +231,7 @@
   font-size: 11px;
   font-weight: 700;
   background: #e3edff;
-  color: #2f6feb;
+  color: #2b65d6;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -227,6 +246,13 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: 32px 24px 60px;
+}
+
+/* Skip-link target — tabindex="-1" makes it focusable so keyboard focus actually
+   lands here (not just the URL hash), but it's momentary, not an interactive
+   control, so it doesn't need its own visible ring. */
+.dashboard-main:focus {
+  outline: none;
 }
 
 .dashboard-heading h2 {
@@ -317,15 +343,18 @@
   font-weight: 600;
 }
 
-.pill-open { background: #e3edff; color: #2f6feb; }
-.pill-in-progress { background: #fff3d6; color: #b8860b; }
-.pill-resolved { background: #dff5e6; color: #1f9d55; }
-.pill-closed { background: #eceef3; color: #6b7280; }
+/* Text colors here are darkened from the "obvious" brand shade specifically to clear
+   4.5:1 contrast against each pill's pastel background (WCAG AA for normal text) —
+   verified with the relative-luminance formula, not eyeballed. */
+.pill-open { background: #e3edff; color: #2b65d6; }
+.pill-in-progress { background: #fff3d6; color: #906909; }
+.pill-resolved { background: #dff5e6; color: #187c43; }
+.pill-closed { background: #eceef3; color: #666c7a; }
 
-.pill-low { background: #eceef3; color: #6b7280; }
-.pill-medium { background: #e3edff; color: #2f6feb; }
-.pill-high { background: #ffe6d6; color: #d2691e; }
-.pill-critical { background: #fde0e0; color: #d64545; }
+.pill-low { background: #eceef3; color: #666c7a; }
+.pill-medium { background: #e3edff; color: #2b65d6; }
+.pill-high { background: #ffe6d6; color: #a65318; }
+.pill-critical { background: #fde0e0; color: #b83b3b; }
 
 .filter-bar {
   display: flex;
@@ -349,6 +378,7 @@
 .filter-bar select:focus,
 .filter-bar input:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .filter-search {
@@ -447,11 +477,11 @@
   flex-wrap: wrap;
 }
 
-.pill-sla-breached { background: #fde0e0; color: #d64545; }
-.pill-sla-due-today { background: #fff3d6; color: #b8860b; }
-.pill-sla-met { background: #dff5e6; color: #1f9d55; }
-.pill-sla-late { background: #ffe6d6; color: #d2691e; }
-.pill-sla-on-track { background: #e3edff; color: #2f6feb; }
+.pill-sla-breached { background: #fde0e0; color: #b83b3b; }
+.pill-sla-due-today { background: #fff3d6; color: #906909; }
+.pill-sla-met { background: #dff5e6; color: #187c43; }
+.pill-sla-late { background: #ffe6d6; color: #a65318; }
+.pill-sla-on-track { background: #e3edff; color: #2b65d6; }
 
 .detail-grid {
   display: grid;
@@ -542,8 +572,8 @@
   margin-left: 6px;
 }
 
-.role-badge-agent { background: #e3edff; color: #2f6feb; }
-.role-badge-user { background: #eceef3; color: #6b7280; }
+.role-badge-agent { background: #e3edff; color: #2b65d6; }
+.role-badge-user { background: #eceef3; color: #666c7a; }
 
 .no-comments {
   color: var(--color-muted);
@@ -613,6 +643,7 @@
 
 #comment-form textarea:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 #comment-form .btn-submit {
@@ -689,8 +720,8 @@
 }
 
 .csat-star.selected {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
   color: #fff;
 }
 
@@ -743,6 +774,7 @@
 
 .form-card form textarea:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .form-card form input[type="file"] {
