@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: helpdeskpro
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install Python test dependencies
+        working-directory: tests
+        run: pip install -r requirements.txt
+
+      - name: Create backend .env
+        working-directory: backend
+        run: |
+          cat > .env << 'EOF'
+          DB_HOST=127.0.0.1
+          DB_USER=root
+          DB_PASSWORD=
+          DB_NAME=helpdeskpro
+          PORT=4000
+          JWT_SECRET=ci-test-secret-not-for-production
+          EOF
+
+      - name: Wait for MySQL
+        run: |
+          for i in $(seq 1 30); do
+            mysqladmin ping -h127.0.0.1 -uroot --silent && break
+            sleep 2
+          done
+
+      - name: Load database schema and seed data
+        run: |
+          mysql -h127.0.0.1 -uroot helpdeskpro < backend/database/schema.sql
+          mysql -h127.0.0.1 -uroot helpdeskpro < backend/database/seed.sql
+
+      - name: Set demo account passwords
+        working-directory: backend
+        run: node scripts/set-demo-passwords.js
+
+      - name: Run Selenium/PyTest suite
+        working-directory: tests
+        run: python -m pytest -v
