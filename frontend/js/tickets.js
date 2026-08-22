@@ -97,3 +97,9 @@ clearBtn.addEventListener("click", () => {
 const session = requireSession();
 ticketsTitle.textContent = session.user.role === "user" ? "My tickets" : "All tickets";
 render();
+
+// Live-refresh the queue when any ticket changes — staff room membership means users
+// simply won't receive this event, so no extra role check is needed here.
+if (window.hdproSocket) {
+  window.hdproSocket.on("ticket:changed", () => render());
+}

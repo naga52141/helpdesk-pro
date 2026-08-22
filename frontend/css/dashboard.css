@@ -89,10 +89,14 @@
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   line-height: 1;
+}
+
+.notification-badge:not([hidden]) {
+  display: flex;
 }
 
 .notification-dropdown {
@@ -382,6 +386,24 @@
 
 .back-link:hover {
   color: var(--color-primary);
+}
+
+.live-update-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  background: #fff3d6;
+  border: 1px solid #f0dba0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #7a5c00;
+}
+
+.live-update-banner:not([hidden]) {
+  display: flex;
 }
 
 .detail-header {

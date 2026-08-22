@@ -68,6 +68,27 @@ const notFoundEl = document.getElementById("not-found");
 const contentEl = document.getElementById("ticket-content");
 const detailErrorEl = document.getElementById("detail-error");
 
+// Live updates land as a banner rather than an auto re-render — silently overwriting
+// fields while someone might be mid-way through typing a comment is worse than asking
+// them to refresh. Joined immediately, before the ticket fetch below even starts — the
+// Socket.IO client buffers emits made pre-connect and flushes them on connect, so this
+// beats the fetch to the room join. Waiting until after the fetch resolves (socket
+// connection can take longer than a plain REST call) left a window where a change
+// landing right after page load would be silently missed, since room broadcasts aren't
+// replayed for late joiners.
+if (window.hdproSocket) {
+  window.hdproSocket.emit("join-ticket", Number(ticketId));
+  window.hdproSocket.on("ticket:changed", (data) => {
+    if (data.id === Number(ticketId)) {
+      document.getElementById("live-update-banner").hidden = false;
+    }
+  });
+}
+
+document.getElementById("live-update-refresh-btn").addEventListener("click", () => {
+  window.location.reload();
+});
+
 init();
 
 async function init() {

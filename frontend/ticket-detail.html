@@ -53,6 +53,11 @@
 
     <p id="detail-error" class="form-error" hidden></p>
 
+    <div id="live-update-banner" class="live-update-banner" hidden>
+      <span>This ticket was just updated.</span>
+      <button type="button" id="live-update-refresh-btn" class="btn-tiny">Refresh</button>
+    </div>
+
     <div id="not-found" class="recent-section" hidden>
       <p>Ticket not found. <a href="tickets.html">Go back to the ticket queue</a>.</p>
     </div>
@@ -177,8 +182,10 @@
     </div>
   </main>
 
+  <script src="http://localhost:4000/socket.io/socket.io.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/realtime.js"></script>
   <script src="js/notifications.js"></script>
   <script src="js/ticket-detail.js"></script>
 </body>

@@ -1,4 +1,5 @@
 const express = require("express");
+const http = require("http");
 const cors = require("cors");
 const helmet = require("helmet");
 
@@ -11,6 +12,7 @@ const usersRouter = require("./routes/users");
 const slaRulesRouter = require("./routes/slaRules");
 const notificationsRouter = require("./routes/notifications");
 const { checkSlaWarnings, checkSlaBreaches } = require("./utils/slaWarnings");
+const { initSocket } = require("./socket");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -39,7 +41,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(PORT, () => {
+// A plain http.Server (rather than app.listen()'s implicit one) so Socket.IO can attach
+// to the same server and share its port.
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`HelpDesk Pro API listening on http://localhost:${PORT}`);
 });
 

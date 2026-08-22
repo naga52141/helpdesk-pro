@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 const { createNotification } = require("./notify");
+const { emitToStaff, emitToTicket } = require("../socket");
 
 const SYSTEM_USER_EMAIL = "system@helpdeskpro.local";
 const ESCALATION = { low: "medium", medium: "high", high: "critical" };
@@ -66,6 +67,9 @@ async function checkSlaBreaches() {
         `SLA breached: T-${ticket.id} (${ticket.title}) auto-escalated to ${newPriority} priority`
       );
     }
+
+    emitToStaff("ticket:changed", { id: ticket.id });
+    emitToTicket(ticket.id, "ticket:changed", { id: ticket.id });
   }
 }
 

@@ -90,6 +90,10 @@
     }
   });
 
+  // Exposed so realtime.js can trigger an immediate refresh on a live push — the
+  // interval below just becomes a fallback for missed events (e.g. a dropped connection).
+  window.refreshNotifications = loadNotifications;
+
   loadNotifications();
-  setInterval(loadNotifications, 30000);
+  setInterval(loadNotifications, 60000);
 })();

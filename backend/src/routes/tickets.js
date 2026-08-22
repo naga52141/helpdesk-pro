@@ -8,6 +8,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
 const { createNotification } = require("../utils/notify");
 const { isOneOf, isPositiveInt } = require("../utils/validate");
+const { emitToStaff, emitToTicket } = require("../socket");
 
 const PRIORITIES = ["low", "medium", "high", "critical"];
 const STATUSES = ["open", "in-progress", "resolved", "closed"];
@@ -184,6 +185,7 @@ router.post("/", asyncHandler(async (req, res) => {
   );
 
   const ticket = await getTicketDetail(result.insertId);
+  emitToStaff("ticket:changed", { id: ticket.id });
   res.status(201).json(ticket);
 }));
 
@@ -284,6 +286,9 @@ router.patch("/:id", asyncHandler(async (req, res) => {
     await createNotification(existing.created_by, id, "status_change", `${displayId} status changed to ${status.replace("-", " ")}`);
   }
 
+  emitToStaff("ticket:changed", { id: Number(id) });
+  emitToTicket(id, "ticket:changed", { id: Number(id) });
+
   res.json(await getTicketDetail(id));
 }));
 
@@ -318,6 +323,8 @@ router.post("/:id/comments", asyncHandler(async (req, res) => {
   for (const targetUserId of notifyTargets) {
     await createNotification(targetUserId, id, "comment", `New comment on ${displayId}: ${ticket.title}`);
   }
+
+  emitToTicket(id, "ticket:changed", { id: Number(id) });
 
   res.status(201).json(newComment);
 }));

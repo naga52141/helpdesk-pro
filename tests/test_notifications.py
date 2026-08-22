@@ -34,6 +34,21 @@ def test_notification_dropdown_hidden_by_default(driver, base_url):
     assert NotificationBell(driver).is_dropdown_visible() is False
 
 
+# Regression coverage for the CSS-specificity bug where the badge set `display: flex`
+# unconditionally, so it was permanently visible (as "0") even with zero unread — must
+# check real rendered visibility (is_displayed), not just the JS `hidden` property.
+def test_notification_badge_hidden_when_no_unread(driver, base_url):
+    session = api_login("agent2")  # an account unlikely to have unread notifications from other tests
+
+    requests.post(f"{API_URL}/notifications/read-all", headers={"Authorization": f"Bearer {session['token']}"})
+
+    dashboard = DashboardPage(driver, base_url)
+    dashboard.set_session(session["token"], session["user"])
+    dashboard.load()
+
+    assert NotificationBell(driver).badge_is_visible() is False
+
+
 def test_bell_opens_dropdown_and_mark_all_read_closes_it(driver, base_url):
     session = api_login("user")
     dashboard = DashboardPage(driver, base_url)

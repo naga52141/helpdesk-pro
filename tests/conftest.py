@@ -124,6 +124,20 @@ def driver(download_dir):
 
 
 @pytest.fixture
+def driver2():
+    """A second independent browser session, for tests proving a live update pushed by
+    one client (via Socket.IO) is actually observed by a different client's open page,
+    rather than just by the action's own client re-rendering itself."""
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--window-size=1280,900")
+    drv = webdriver.Chrome(options=options)
+    drv.implicitly_wait(0)
+    yield drv
+    drv.quit()
+
+
+@pytest.fixture
 def base_url(wait_for_health):
     return BASE_URL
 

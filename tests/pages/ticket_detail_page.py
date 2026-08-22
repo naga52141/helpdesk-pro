@@ -94,3 +94,14 @@ class TicketDetailPage(BasePage):
 
     def csat_error_text(self):
         return self.wait_until_visible(By.ID, "csat-error").text
+
+    def live_update_banner_visible(self):
+        return self.find(By.ID, "live-update-banner").is_displayed()
+
+    def wait_for_live_update_banner(self, timeout=10):
+        WebDriverWait(self.driver, timeout).until(lambda d: self.live_update_banner_visible())
+        return self
+
+    def click_live_update_refresh(self):
+        self.find_clickable(By.ID, "live-update-refresh-btn").click()
+        return self
