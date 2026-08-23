@@ -91,3 +91,7 @@ class TicketsPage(BasePage):
 
     def bulk_error_text(self):
         return self.wait_until_visible(By.ID, "bulk-error").text
+
+    def export_csv(self):
+        self.find_clickable(By.ID, "export-csv-btn").click()
+        return self

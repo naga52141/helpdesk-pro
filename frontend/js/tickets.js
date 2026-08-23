@@ -18,6 +18,7 @@ const priorityFilter = document.getElementById("filter-priority");
 const categoryFilter = document.getElementById("filter-category");
 const agentFilter = document.getElementById("filter-agent");
 const clearBtn = document.getElementById("clear-filters");
+const exportCsvBtn = document.getElementById("export-csv-btn");
 const ticketsBody = document.getElementById("tickets-body");
 const ticketsTitle = document.getElementById("tickets-title");
 const ticketsCount = document.getElementById("tickets-count");
@@ -34,6 +35,7 @@ const bulkClearBtn = document.getElementById("bulk-clear-btn");
 const bulkError = document.getElementById("bulk-error");
 
 const selectedIds = new Set();
+let currentTickets = [];
 
 function buildFilterQuery() {
   const params = new URLSearchParams();
@@ -56,6 +58,7 @@ async function render() {
     ]);
 
     ticketsCount.textContent = `Showing ${filtered.length} of ${base.length} tickets`;
+    currentTickets = filtered;
     renderRows(filtered);
   } catch (err) {
     errorEl.textContent = err.message;
@@ -201,6 +204,39 @@ clearBtn.addEventListener("click", () => {
   categoryFilter.value = "all";
   agentFilter.value = "all";
   render();
+});
+
+// Wraps a field in quotes (doubling any embedded quotes) only when it actually needs
+// it — a comma, quote, or newline in the value would otherwise corrupt the CSV shape.
+function csvEscape(value) {
+  const str = String(value);
+  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+}
+
+function ticketsToCsv(tickets) {
+  const headers = ["ID", "Title", "Category", "Priority", "Status", "Assigned Agent", "Department", "Updated"];
+  const rows = tickets.map((t) => [
+    t.displayId,
+    t.title,
+    t.category,
+    t.priority,
+    t.status,
+    t.assignedAgent || "Unassigned",
+    t.department,
+    new Date(t.updatedAt).toLocaleDateString(),
+  ]);
+  return [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+}
+
+exportCsvBtn.addEventListener("click", () => {
+  const csv = ticketsToCsv(currentTickets);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `tickets-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
 });
 
 const session = requireSession();
