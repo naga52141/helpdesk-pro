@@ -13,4 +13,15 @@ const authRateLimiter = rateLimit({
   message: { error: "Too many attempts. Please wait a few minutes and try again." },
 });
 
-module.exports = { authRateLimiter };
+// Assistant calls hit a paid-by-the-provider (if past free-tier limits) external API, so
+// this stays tighter than auth — generous enough for a real back-and-forth conversation,
+// not generous enough for someone to script against it as a free inference endpoint.
+const assistantRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many assistant messages. Please wait a few minutes and try again." },
+});
+
+module.exports = { authRateLimiter, assistantRateLimiter };

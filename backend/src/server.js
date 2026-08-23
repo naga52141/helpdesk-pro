@@ -17,6 +17,7 @@ const articlesRouter = require("./routes/articles");
 const cannedResponsesRouter = require("./routes/cannedResponses");
 const auditLogRouter = require("./routes/auditLog");
 const savedViewsRouter = require("./routes/savedViews");
+const assistantRouter = require("./routes/assistant");
 const { checkSlaWarnings, checkSlaBreaches } = require("./utils/slaWarnings");
 const { initSocket } = require("./socket");
 
@@ -50,6 +51,7 @@ app.use("/api/articles", articlesRouter);
 app.use("/api/canned-responses", cannedResponsesRouter);
 app.use("/api/audit-log", auditLogRouter);
 app.use("/api/saved-views", savedViewsRouter);
+app.use("/api/assistant", assistantRouter);
 
 app.use((err, req, res, next) => {
   console.error(err);
