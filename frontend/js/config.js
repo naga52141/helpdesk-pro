@@ -6,4 +6,4 @@
 const HDPRO_IS_LOCAL = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const HDPRO_BACKEND_URL = HDPRO_IS_LOCAL
   ? "http://localhost:4000"
-  : "https://helpdeskpro-backend.onrender.com";
+  : "https://helpdeskpro-backend-cf6f.onrender.com";
