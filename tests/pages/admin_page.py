@@ -112,3 +112,47 @@ class AdminPage(BasePage):
         save_btn.click()
         WebDriverWait(self.driver, 10).until(lambda d: save_btn.text == "Saved")
         return self
+
+    def canned_response_titles(self):
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "canned-responses-table-body")))
+        for _ in range(5):
+            try:
+                inputs = self.driver.find_elements(By.CSS_SELECTOR, "#canned-responses-table-body input[type=text]")
+                return [i.get_attribute("value") for i in inputs]
+            except StaleElementReferenceException:
+                continue
+        raise StaleElementReferenceException("canned-responses-table-body kept re-rendering")
+
+    def add_canned_response(self, title, body):
+        self.find(By.ID, "canned-response-title-input").send_keys(title)
+        self.find(By.ID, "canned-response-body-input").send_keys(body)
+        self.find_clickable(By.CSS_SELECTOR, "#canned-response-add-form button[type=submit]").click()
+        WebDriverWait(self.driver, 10).until(lambda d: title in self.canned_response_titles())
+        return self
+
+    def _canned_response_row(self, title):
+        for _ in range(5):
+            try:
+                return next(
+                    r for r in self.driver.find_elements(By.CSS_SELECTOR, "#canned-responses-table-body tr")
+                    if r.find_element(By.CSS_SELECTOR, "input[type=text]").get_attribute("value") == title
+                )
+            except StaleElementReferenceException:
+                continue
+        raise StaleElementReferenceException(f"canned-responses-table-body kept re-rendering while looking for {title!r}")
+
+    def rename_canned_response(self, old_title, new_title):
+        row = self._canned_response_row(old_title)
+        input_el = row.find_element(By.CSS_SELECTOR, "input[type=text]")
+        input_el.clear()
+        input_el.send_keys(new_title)
+        save_btn = row.find_element(By.CSS_SELECTOR, '[data-action="save-canned"]')
+        save_btn.click()
+        WebDriverWait(self.driver, 10).until(lambda d: save_btn.text == "Saved")
+        return self
+
+    def delete_canned_response(self, title):
+        row = self._canned_response_row(title)
+        row.find_element(By.CSS_SELECTOR, '[data-action="delete-canned"]').click()
+        WebDriverWait(self.driver, 10).until(lambda d: title not in self.canned_response_titles())
+        return self

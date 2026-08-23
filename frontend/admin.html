@@ -70,6 +70,7 @@
         <button type="button" class="admin-tab" data-tab="categories" role="tab" id="tab-categories" aria-selected="false" aria-controls="panel-categories">Categories</button>
         <button type="button" class="admin-tab" data-tab="departments" role="tab" id="tab-departments" aria-selected="false" aria-controls="panel-departments">Departments</button>
         <button type="button" class="admin-tab" data-tab="sla" role="tab" id="tab-sla" aria-selected="false" aria-controls="panel-sla">SLA Rules</button>
+        <button type="button" class="admin-tab" data-tab="canned-responses" role="tab" id="tab-canned-responses" aria-selected="false" aria-controls="panel-canned-responses">Canned Responses</button>
       </div>
 
       <section class="admin-panel" id="panel-users" role="tabpanel" aria-labelledby="tab-users">
@@ -130,6 +131,21 @@
               </tr>
             </thead>
             <tbody id="sla-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel" id="panel-canned-responses" role="tabpanel" aria-labelledby="tab-canned-responses" hidden>
+        <form class="admin-add-form admin-add-form-stacked" id="canned-response-add-form">
+          <input type="text" id="canned-response-title-input" placeholder="Title (e.g. Password reset confirmation)" required />
+          <textarea id="canned-response-body-input" rows="3" placeholder="Response text" required></textarea>
+          <button type="submit" class="btn-secondary">Add response</button>
+        </form>
+        <p class="form-error" id="canned-response-error" hidden></p>
+        <div class="table-wrap">
+          <table class="chart-data-table" id="canned-responses-table">
+            <thead><tr><th>Title</th><th>Body</th><th></th></tr></thead>
+            <tbody id="canned-responses-table-body"></tbody>
           </table>
         </div>
       </section>

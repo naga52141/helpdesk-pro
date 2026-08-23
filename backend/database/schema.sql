@@ -126,3 +126,12 @@ CREATE TABLE articles (
   FOREIGN KEY (created_by) REFERENCES users(id),
   INDEX idx_category (category_id)
 );
+
+CREATE TABLE canned_responses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150) NOT NULL,
+  body TEXT NOT NULL,
+  created_by INT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by) REFERENCES users(id)
+);

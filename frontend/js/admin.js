@@ -14,6 +14,7 @@ if (session.user.role !== "admin") {
   loadCategories();
   loadDepartments();
   loadSlaRules();
+  loadCannedResponses();
 }
 
 function initTabs() {
@@ -226,3 +227,85 @@ async function loadSlaRules() {
     showError(err.message);
   }
 }
+
+// ---------- Canned Responses ----------
+
+async function loadCannedResponses() {
+  try {
+    const responses = await apiFetch("/canned-responses");
+    const body = document.getElementById("canned-responses-table-body");
+    body.innerHTML = "";
+
+    responses.forEach((cr) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" value="${cr.title}" data-title-id="${cr.id}" /></td>
+        <td class="canned-response-body-cell"><textarea rows="2" data-body-id="${cr.id}">${cr.body}</textarea></td>
+        <td>
+          <div class="row-actions">
+            <button type="button" class="btn-tiny" data-action="save-canned" data-id="${cr.id}">Save</button>
+            <button type="button" class="btn-tiny btn-tiny-danger" data-action="delete-canned" data-id="${cr.id}">Delete</button>
+          </div>
+        </td>
+      `;
+      body.appendChild(row);
+    });
+
+    body.querySelectorAll('[data-action="save-canned"]').forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        const title = body.querySelector(`input[data-title-id="${id}"]`).value.trim();
+        const responseBody = body.querySelector(`textarea[data-body-id="${id}"]`).value.trim();
+        const errEl = document.getElementById("canned-response-error");
+        errEl.hidden = true;
+        try {
+          await apiFetch(`/canned-responses/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ title, body: responseBody }),
+          });
+          btn.textContent = "Saved";
+          setTimeout(() => (btn.textContent = "Save"), 1200);
+        } catch (err) {
+          errEl.textContent = err.message;
+          errEl.hidden = false;
+        }
+      });
+    });
+
+    body.querySelectorAll('[data-action="delete-canned"]').forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        try {
+          await apiFetch(`/canned-responses/${btn.dataset.id}`, { method: "DELETE" });
+          loadCannedResponses();
+        } catch (err) {
+          const errEl = document.getElementById("canned-response-error");
+          errEl.textContent = err.message;
+          errEl.hidden = false;
+        }
+      });
+    });
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+document.getElementById("canned-response-add-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const titleInput = document.getElementById("canned-response-title-input");
+  const bodyInput = document.getElementById("canned-response-body-input");
+  const errEl = document.getElementById("canned-response-error");
+  errEl.hidden = true;
+
+  try {
+    await apiFetch("/canned-responses", {
+      method: "POST",
+      body: JSON.stringify({ title: titleInput.value.trim(), body: bodyInput.value.trim() }),
+    });
+    titleInput.value = "";
+    bodyInput.value = "";
+    loadCannedResponses();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.hidden = false;
+  }
+});

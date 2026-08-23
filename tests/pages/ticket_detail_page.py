@@ -56,6 +56,19 @@ class TicketDetailPage(BasePage):
         comments = self.driver.find_elements(By.CSS_SELECTOR, "#comments-list .comment")
         return [c.text for c in comments]
 
+    def canned_response_select_visible(self):
+        return self.find(By.ID, "canned-response-select").is_displayed()
+
+    def canned_response_titles(self):
+        return [o.text for o in Select(self.find(By.ID, "canned-response-select")).options]
+
+    def insert_canned_response(self, title):
+        Select(self.find(By.ID, "canned-response-select")).select_by_visible_text(title)
+        return self
+
+    def comment_draft_text(self):
+        return self.find(By.ID, "comment-text").get_attribute("value")
+
     def assign_to(self, agent_name):
         before = self.find(By.ID, "d-agent").text
         Select(self.find(By.ID, "assign-select")).select_by_visible_text(agent_name)

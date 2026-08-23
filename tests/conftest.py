@@ -234,6 +234,7 @@ def cleanup_test_data(wait_for_health):
             cur.execute("DELETE FROM tickets WHERE title LIKE %s", (f"{TEST_TICKET_PREFIX}%",))
             cur.execute("DELETE FROM articles WHERE title LIKE %s", (f"{TEST_TICKET_PREFIX}%",))
             cur.execute("DELETE FROM users WHERE email LIKE %s", (f"%@{TEST_EMAIL_DOMAIN}",))
+            cur.execute("DELETE FROM canned_responses WHERE title LIKE %s", (f"{TEST_NAME_PREFIX}%",))
             cur.execute("DELETE FROM categories WHERE name LIKE %s", (f"{TEST_NAME_PREFIX}%",))
             cur.execute("DELETE FROM departments WHERE name LIKE %s", (f"{TEST_NAME_PREFIX}%",))
         conn.commit()

@@ -93,13 +93,15 @@ init();
 
 async function init() {
   try {
-    const [ticket, agents] = await Promise.all([
+    const isStaff = session.user.role === "agent" || session.user.role === "admin";
+    const [ticket, agents, cannedResponses] = await Promise.all([
       apiFetch(`/tickets/${ticketId}`),
       apiFetch("/agents"),
+      isStaff ? apiFetch("/canned-responses") : Promise.resolve([]),
     ]);
     notFoundEl.hidden = true;
     contentEl.hidden = false;
-    runDetailPage(ticket, agents);
+    runDetailPage(ticket, agents, cannedResponses);
   } catch (err) {
     if (err.message.includes("404") || err.message === "Ticket not found") {
       notFoundEl.hidden = false;
@@ -111,7 +113,7 @@ async function init() {
   }
 }
 
-function runDetailPage(initialTicket, agents) {
+function runDetailPage(initialTicket, agents, cannedResponses) {
   let ticket = initialTicket;
   const isAgentOrAdmin = session.user.role === "agent" || session.user.role === "admin";
 
@@ -156,6 +158,25 @@ function runDetailPage(initialTicket, agents) {
     opt.textContent = agent.name;
     els.assignSelect.appendChild(opt);
   });
+
+  const cannedSelect = document.getElementById("canned-response-select");
+  if (isAgentOrAdmin && cannedResponses.length > 0) {
+    cannedResponses.forEach((cr) => {
+      const opt = document.createElement("option");
+      opt.value = cr.id;
+      opt.textContent = cr.title;
+      cannedSelect.appendChild(opt);
+    });
+    cannedSelect.addEventListener("change", () => {
+      if (!cannedSelect.value) return;
+      const chosen = cannedResponses.find((cr) => String(cr.id) === cannedSelect.value);
+      const textarea = document.getElementById("comment-text");
+      if (chosen) {
+        textarea.value = textarea.value ? `${textarea.value}\n\n${chosen.body}` : chosen.body;
+      }
+      cannedSelect.value = "";
+    });
+  }
 
   els.agentControls.hidden = !isAgentOrAdmin;
   els.userControls.hidden = isAgentOrAdmin;

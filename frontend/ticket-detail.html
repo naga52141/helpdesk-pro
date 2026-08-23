@@ -92,6 +92,9 @@
 
             <form id="comment-form">
               <label for="comment-text">Add a comment</label>
+              <select id="canned-response-select" class="staff-only" hidden>
+                <option value="">Insert a canned response...</option>
+              </select>
               <textarea id="comment-text" rows="3" placeholder="Write an update..."></textarea>
               <button type="submit" class="btn-primary btn-submit">Post Comment</button>
             </form>
