@@ -2,7 +2,9 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const helmet = require("helmet");
+const swaggerUi = require("swagger-ui-express");
 
+const openApiSpec = require("./openapi");
 const authRouter = require("./routes/auth");
 const lookupsRouter = require("./routes/lookups");
 const ticketsRouter = require("./routes/tickets");
@@ -18,6 +20,11 @@ const { initSocket } = require("./socket");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Mounted before helmet so its default Content-Security-Policy (no inline scripts/styles)
+// never applies here — Swagger UI's page relies on both. Everything else still gets the
+// full helmet treatment below.
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 // crossOriginResourcePolicy is disabled — the frontend is served from a different origin
 // and fetches JSON + downloads files from here, which the default same-origin policy blocks.

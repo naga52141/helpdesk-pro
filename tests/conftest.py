@@ -22,6 +22,7 @@ MAILPIT_CONTAINER = "hdpro-test-mailpit"
 
 BASE_URL = f"http://localhost:{FRONTEND_PORT}"
 API_URL = f"http://localhost:{BACKEND_PORT}/api"
+DOCS_URL = f"http://localhost:{BACKEND_PORT}/api-docs/"
 MAILPIT_URL = f"http://localhost:{MAILPIT_PORT}"
 
 # Demo accounts seeded by backend/database/seed.sql (see scripts/set-demo-passwords.js)
