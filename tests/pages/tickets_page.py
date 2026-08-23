@@ -121,7 +121,14 @@ class TicketsPage(BasePage):
         return self
 
     def saved_view_names(self):
-        return [b.text for b in self.driver.find_elements(By.CSS_SELECTOR, ".saved-view-apply")]
+        # loadSavedViews() rebuilds the whole list (innerHTML = "" then re-appends) on
+        # every save/delete, same as categories/canned-responses — retry on staleness.
+        for _ in range(5):
+            try:
+                return [b.text for b in self.driver.find_elements(By.CSS_SELECTOR, ".saved-view-apply")]
+            except StaleElementReferenceException:
+                continue
+        raise StaleElementReferenceException("saved-views-list kept re-rendering")
 
     def save_current_view(self, name):
         self.find(By.ID, "save-view-name-input").send_keys(name)
@@ -133,15 +140,27 @@ class TicketsPage(BasePage):
         return self.wait_until_visible(By.ID, "saved-view-error").text
 
     def apply_saved_view(self, name):
-        self.driver.find_element(
-            By.XPATH, f"//button[@class='saved-view-apply' and text()='{name}']"
-        ).click()
-        return self
+        for _ in range(5):
+            try:
+                self.driver.find_element(
+                    By.XPATH, f"//button[@class='saved-view-apply' and text()='{name}']"
+                ).click()
+                return self
+            except StaleElementReferenceException:
+                continue
+        raise StaleElementReferenceException(f"saved-views-list kept re-rendering while looking for {name!r}")
 
     def delete_saved_view(self, name):
-        chip = self.driver.find_element(
-            By.XPATH, f"//span[contains(@class,'saved-view-chip')][.//button[text()='{name}']]"
-        )
-        chip.find_element(By.CSS_SELECTOR, ".saved-view-delete").click()
+        for _ in range(5):
+            try:
+                chip = self.driver.find_element(
+                    By.XPATH, f"//span[contains(@class,'saved-view-chip')][.//button[text()='{name}']]"
+                )
+                chip.find_element(By.CSS_SELECTOR, ".saved-view-delete").click()
+                break
+            except StaleElementReferenceException:
+                continue
+        else:
+            raise StaleElementReferenceException(f"saved-views-list kept re-rendering while looking for {name!r}")
         WebDriverWait(self.driver, 10).until(lambda d: name not in self.saved_view_names())
         return self
