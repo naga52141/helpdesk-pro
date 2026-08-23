@@ -78,17 +78,34 @@ class AdminPage(BasePage):
     def rename_category(self, old_name, new_name):
         # Renaming reloads the whole table (see admin.js's onChange), so the row/button
         # references go stale right after the click — poll the fresh list state instead.
-        row = self._category_row(old_name)
-        input_el = row.find_element(By.CSS_SELECTOR, "input")
-        input_el.clear()
-        input_el.send_keys(new_name)
-        row.find_element(By.CSS_SELECTOR, '[data-action="rename"]').click()
+        # The row lookup itself already retries on staleness, but the table can also
+        # re-render between that lookup and this method's own use of the row, so the
+        # whole find-and-act sequence is retried too (re-fetching a fresh row each time).
+        for _ in range(5):
+            try:
+                row = self._category_row(old_name)
+                input_el = row.find_element(By.CSS_SELECTOR, "input")
+                input_el.clear()
+                input_el.send_keys(new_name)
+                row.find_element(By.CSS_SELECTOR, '[data-action="rename"]').click()
+                break
+            except StaleElementReferenceException:
+                continue
+        else:
+            raise StaleElementReferenceException(f"categories-table-body kept re-rendering while renaming {old_name!r}")
         WebDriverWait(self.driver, 10).until(lambda d: new_name in self.category_names())
         return self
 
     def delete_category(self, name):
-        row = self._category_row(name)
-        row.find_element(By.CSS_SELECTOR, '[data-action="delete"]').click()
+        for _ in range(5):
+            try:
+                row = self._category_row(name)
+                row.find_element(By.CSS_SELECTOR, '[data-action="delete"]').click()
+                break
+            except StaleElementReferenceException:
+                continue
+        else:
+            raise StaleElementReferenceException(f"categories-table-body kept re-rendering while deleting {name!r}")
         WebDriverWait(self.driver, 10).until(lambda d: name not in self.category_names())
         return self
 
@@ -142,18 +159,32 @@ class AdminPage(BasePage):
         raise StaleElementReferenceException(f"canned-responses-table-body kept re-rendering while looking for {title!r}")
 
     def rename_canned_response(self, old_title, new_title):
-        row = self._canned_response_row(old_title)
-        input_el = row.find_element(By.CSS_SELECTOR, "input[type=text]")
-        input_el.clear()
-        input_el.send_keys(new_title)
-        save_btn = row.find_element(By.CSS_SELECTOR, '[data-action="save-canned"]')
-        save_btn.click()
+        for _ in range(5):
+            try:
+                row = self._canned_response_row(old_title)
+                input_el = row.find_element(By.CSS_SELECTOR, "input[type=text]")
+                input_el.clear()
+                input_el.send_keys(new_title)
+                save_btn = row.find_element(By.CSS_SELECTOR, '[data-action="save-canned"]')
+                save_btn.click()
+                break
+            except StaleElementReferenceException:
+                continue
+        else:
+            raise StaleElementReferenceException(f"canned-responses-table-body kept re-rendering while renaming {old_title!r}")
         WebDriverWait(self.driver, 10).until(lambda d: save_btn.text == "Saved")
         return self
 
     def delete_canned_response(self, title):
-        row = self._canned_response_row(title)
-        row.find_element(By.CSS_SELECTOR, '[data-action="delete-canned"]').click()
+        for _ in range(5):
+            try:
+                row = self._canned_response_row(title)
+                row.find_element(By.CSS_SELECTOR, '[data-action="delete-canned"]').click()
+                break
+            except StaleElementReferenceException:
+                continue
+        else:
+            raise StaleElementReferenceException(f"canned-responses-table-body kept re-rendering while deleting {title!r}")
         WebDriverWait(self.driver, 10).until(lambda d: title not in self.canned_response_titles())
         return self
 
