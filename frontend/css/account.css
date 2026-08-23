@@ -1,0 +1,68 @@
+.account-card {
+  max-width: 480px;
+}
+
+.account-card label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: 6px;
+}
+
+.account-card .control-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.account-card .control-row input {
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
+  outline: none;
+}
+
+.account-card .control-row input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.account-card .control-row .btn-secondary,
+.account-card .control-row .btn-primary {
+  white-space: nowrap;
+}
+
+.twofa-qr-code {
+  display: block;
+  width: 200px;
+  height: 200px;
+  margin: 14px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+}
+
+.twofa-manual-secret {
+  font-size: 13px;
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+.twofa-manual-secret code {
+  background: var(--color-subtle-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+#twofa-success-message {
+  color: var(--color-text);
+  font-weight: 600;
+}

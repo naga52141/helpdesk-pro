@@ -4,9 +4,10 @@
   <script src="js/theme.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HelpDesk Pro — Article</title>
+  <title>HelpDesk Pro — Account</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/account.css" />
 </head>
 <body class="app-body">
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -19,7 +20,7 @@
     <nav class="navbar-links">
       <a href="dashboard.html" class="nav-link">Dashboard</a>
       <a href="tickets.html" class="nav-link">Tickets</a>
-      <a href="knowledge-base.html" class="nav-link active">Knowledge Base</a>
+      <a href="knowledge-base.html" class="nav-link">Knowledge Base</a>
       <a href="analytics.html" class="nav-link staff-only" hidden>Analytics</a>
       <a href="admin.html" class="nav-link admin-only" hidden>Admin</a>
     </nav>
@@ -54,30 +55,53 @@
   </header>
 
   <main class="dashboard-main" id="main-content" tabindex="-1">
-    <a href="knowledge-base.html" class="back-link">&larr; Back to knowledge base</a>
-
-    <p id="detail-error" class="form-error" hidden></p>
-
-    <div id="not-found" class="recent-section" hidden>
-      <p>Article not found. <a href="knowledge-base.html">Go back to the knowledge base</a>.</p>
+    <div class="dashboard-heading">
+      <h2>Account</h2>
+      <p class="text-muted">Manage your security settings</p>
     </div>
 
-    <div id="article-content-wrap" hidden>
-      <div class="detail-header">
-        <div>
-          <h2 id="a-title"></h2>
-          <p class="text-muted" id="a-meta"></p>
-        </div>
-        <div class="control-row staff-only" id="article-actions" hidden>
-          <a href="#" id="edit-link" class="btn-secondary">Edit</a>
-          <button type="button" id="delete-btn" class="btn-secondary">Delete</button>
-        </div>
+    <section class="recent-section detail-card account-card">
+      <h3>Two-factor authentication</h3>
+      <p id="twofa-error" class="form-error" hidden></p>
+
+      <div id="twofa-loading" class="text-muted">Loading...</div>
+
+      <div id="twofa-disabled-state" hidden>
+        <p class="text-muted">Two-factor authentication is currently <strong>off</strong>. Turn it on to require a code from an authenticator app at login, in addition to your password.</p>
+        <button type="button" id="twofa-start-setup-btn" class="btn-secondary">Set up two-factor authentication</button>
       </div>
 
-      <section class="recent-section detail-card">
-        <p id="a-content" class="article-content"></p>
-      </section>
-    </div>
+      <div id="twofa-enabled-state" hidden>
+        <p class="text-muted">Two-factor authentication is currently <strong>on</strong>.</p>
+
+        <form id="twofa-disable-form">
+          <label for="twofa-disable-password">Enter your password to turn it off</label>
+          <div class="control-row">
+            <input type="password" id="twofa-disable-password" placeholder="Current password" required />
+            <button type="submit" class="btn-secondary">Turn off</button>
+          </div>
+          <p class="form-error" id="twofa-disable-error" hidden></p>
+        </form>
+      </div>
+
+      <div id="twofa-setup-flow" hidden>
+        <p class="text-muted">Scan this QR code with an authenticator app (like Google Authenticator or Authy), then enter the 6-digit code it shows to confirm setup.</p>
+        <img id="twofa-qr-code" alt="Two-factor authentication QR code" class="twofa-qr-code" />
+        <p class="text-muted twofa-manual-secret">Can't scan? Enter this code manually: <code id="twofa-secret-text"></code></p>
+
+        <form id="twofa-verify-form">
+          <label for="twofa-verify-code">6-digit code</label>
+          <div class="control-row">
+            <input type="text" id="twofa-verify-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456" required />
+            <button type="submit" class="btn-primary btn-submit">Confirm</button>
+          </div>
+          <p class="form-error" id="twofa-verify-error" hidden></p>
+        </form>
+        <button type="button" id="twofa-cancel-setup-btn" class="btn-tiny">Cancel</button>
+      </div>
+
+      <p id="twofa-success-message" class="text-muted" hidden></p>
+    </section>
   </main>
 
   <script src="http://localhost:4000/socket.io/socket.io.js"></script>
@@ -85,6 +109,6 @@
   <script src="js/api.js"></script>
   <script src="js/realtime.js"></script>
   <script src="js/notifications.js"></script>
-  <script src="js/article-detail.js"></script>
+  <script src="js/account.js"></script>
 </body>
 </html>

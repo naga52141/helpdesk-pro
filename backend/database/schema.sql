@@ -18,6 +18,8 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('user', 'agent', 'admin') NOT NULL DEFAULT 'user',
   department_id INT NULL,
+  totp_secret VARCHAR(64) NULL,
+  totp_enabled TINYINT(1) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
 );

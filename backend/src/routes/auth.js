@@ -2,6 +2,13 @@ const express = require("express");
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { authenticator } = require("otplib");
+const QRCode = require("qrcode");
+
+// otplib's default window is 0 — a code is only accepted in the exact current 30s tick,
+// with zero tolerance for the small latency between generating and submitting it (or any
+// clock drift). window: 1 accepts the previous/next step too, the standard tolerance.
+authenticator.options = { window: 1 };
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth } = require("../middleware/auth");
@@ -11,6 +18,11 @@ const { sendEmail } = require("../utils/mailer");
 
 const RESET_TOKEN_TTL_MINUTES = 30;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8935";
+
+// Deliberately distinct from JWT_SECRET so a pending-2FA token can never be mistaken for
+// a real session token by requireAuth, which only ever verifies against JWT_SECRET —
+// this is what stops the temp token from working as a general bearer token.
+const TOTP_PENDING_SECRET = `${process.env.JWT_SECRET}:2fa-pending`;
 
 const router = express.Router();
 
@@ -22,8 +34,12 @@ function signToken(user) {
   );
 }
 
+function signPendingTotpToken(userId) {
+  return jwt.sign({ id: userId }, TOTP_PENDING_SECRET, { expiresIn: "5m" });
+}
+
 function publicUser(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role };
+  return { id: user.id, name: user.name, email: user.email, role: user.role, totpEnabled: Boolean(user.totp_enabled) };
 }
 
 // POST /api/auth/register — self-registration always creates a 'user' role account
@@ -74,6 +90,37 @@ router.post("/login", authRateLimiter, asyncHandler(async (req, res) => {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
     return res.status(401).json({ error: "Invalid email or password" });
+  }
+
+  if (user.totp_enabled) {
+    return res.json({ requiresTotp: true, tempToken: signPendingTotpToken(user.id) });
+  }
+
+  res.json({ token: signToken(user), user: publicUser(user) });
+}));
+
+// POST /api/auth/2fa/login — second step when /login responded with requiresTotp
+router.post("/2fa/login", authRateLimiter, asyncHandler(async (req, res) => {
+  const { tempToken, token } = req.body;
+
+  if (!tempToken || !token) {
+    return res.status(400).json({ error: "tempToken and token are required" });
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(tempToken, TOTP_PENDING_SECRET);
+  } catch {
+    return res.status(401).json({ error: "This login attempt has expired. Please log in again." });
+  }
+
+  const [[user]] = await pool.query("SELECT * FROM users WHERE id = ?", [payload.id]);
+  if (!user || !user.totp_enabled) {
+    return res.status(401).json({ error: "This login attempt has expired. Please log in again." });
+  }
+
+  if (!authenticator.check(token, user.totp_secret)) {
+    return res.status(401).json({ error: "Invalid authentication code" });
   }
 
   res.json({ token: signToken(user), user: publicUser(user) });
@@ -141,6 +188,60 @@ router.post("/reset-password", authRateLimiter, asyncHandler(async (req, res) =>
   await pool.query("UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ?", [resetToken.id]);
 
   res.json({ message: "Password updated. You can now log in with your new password." });
+}));
+
+// GET /api/auth/2fa/status
+router.get("/2fa/status", requireAuth, asyncHandler(async (req, res) => {
+  const [[user]] = await pool.query("SELECT totp_enabled FROM users WHERE id = ?", [req.user.id]);
+  res.json({ enabled: Boolean(user.totp_enabled) });
+}));
+
+// POST /api/auth/2fa/setup — generates a new secret (not yet active) and returns enrollment
+// material. Calling this again before /2fa/verify just replaces the pending secret.
+router.post("/2fa/setup", requireAuth, asyncHandler(async (req, res) => {
+  const secret = authenticator.generateSecret();
+  await pool.query("UPDATE users SET totp_secret = ?, totp_enabled = 0 WHERE id = ?", [secret, req.user.id]);
+
+  const otpauthUrl = authenticator.keyuri(req.user.email, "HelpDesk Pro", secret);
+  const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+
+  res.json({ secret, otpauthUrl, qrCodeDataUrl });
+}));
+
+// POST /api/auth/2fa/verify — confirms enrollment with one real code from the
+// authenticator app, then flips totp_enabled on.
+router.post("/2fa/verify", requireAuth, asyncHandler(async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: "token is required" });
+
+  const [[user]] = await pool.query("SELECT totp_secret FROM users WHERE id = ?", [req.user.id]);
+  if (!user.totp_secret) {
+    return res.status(400).json({ error: "Start setup first by requesting a QR code" });
+  }
+  if (!authenticator.check(token, user.totp_secret)) {
+    return res.status(400).json({ error: "Invalid authentication code" });
+  }
+
+  await pool.query("UPDATE users SET totp_enabled = 1 WHERE id = ?", [req.user.id]);
+  res.json({ enabled: true });
+}));
+
+// POST /api/auth/2fa/disable — requires the current password as a safety check, since
+// this removes a security control from the account.
+router.post("/2fa/disable", requireAuth, asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: "password is required" });
+
+  const [[user]] = await pool.query("SELECT password_hash FROM users WHERE id = ?", [req.user.id]);
+  const valid = await bcrypt.compare(password, user.password_hash);
+  if (!valid) {
+    // 400, not 401 — apiFetch treats any 401 while a session exists as an expired/invalid
+    // bearer token and force-logs-out, which would hide this as a form error entirely.
+    return res.status(400).json({ error: "Incorrect password" });
+  }
+
+  await pool.query("UPDATE users SET totp_secret = NULL, totp_enabled = 0 WHERE id = ?", [req.user.id]);
+  res.json({ enabled: false });
 }));
 
 module.exports = router;

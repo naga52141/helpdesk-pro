@@ -29,8 +29,22 @@
         <button type="submit" class="btn-primary">Log in</button>
       </form>
 
-      <p class="signup-hint"><a href="forgot-password.html">Forgot your password?</a></p>
-      <p class="signup-hint">New here? <a href="register.html">Create an account</a></p>
+      <form id="totp-form" novalidate hidden>
+        <p class="subtitle">Enter the 6-digit code from your authenticator app.</p>
+
+        <label for="totp-code">Authentication code</label>
+        <input type="text" id="totp-code" name="totp-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="123456" required />
+
+        <p class="form-error" id="totp-error" hidden></p>
+
+        <button type="submit" class="btn-primary">Verify</button>
+        <p class="signup-hint"><a href="#" id="totp-back-btn">Use a different account</a></p>
+      </form>
+
+      <p class="signup-hint" id="login-footer-links">
+        <a href="forgot-password.html">Forgot your password?</a>
+      </p>
+      <p class="signup-hint" id="login-footer-signup">New here? <a href="register.html">Create an account</a></p>
     </div>
   </div>
 
