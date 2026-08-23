@@ -887,13 +887,22 @@
   display: flex;
 }
 
-.control-row select {
+.control-row select,
+.control-row input {
   flex: 1;
   padding: 9px 10px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
+  outline: none;
+}
+
+.control-row input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .control-row .btn-secondary {
@@ -914,6 +923,36 @@
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 4px;
+}
+
+#duplicate-controls {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+#duplicate-controls .control-row {
+  margin-bottom: 8px;
+}
+
+.duplicate-banner {
+  display: none;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  background: var(--color-highlight-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.duplicate-banner:not([hidden]) {
+  display: block;
+}
+
+.duplicate-banner a {
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 #csat-prompt {

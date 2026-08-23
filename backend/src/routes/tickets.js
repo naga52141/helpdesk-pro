@@ -50,12 +50,14 @@ async function getTicketDetail(id) {
             t.device_info AS deviceInfo,
             t.created_at AS createdAt, t.updated_at AS updatedAt, t.sla_due_at AS slaDueAt,
             t.resolved_at AS resolvedAt, t.closed_at AS closedAt,
-            t.csat_rating AS csatRating, t.csat_comment AS csatComment, t.csat_submitted_at AS csatSubmittedAt
+            t.csat_rating AS csatRating, t.csat_comment AS csatComment, t.csat_submitted_at AS csatSubmittedAt,
+            t.duplicate_of AS duplicateOfId, dup.title AS duplicateOfTitle
      FROM tickets t
      JOIN categories c ON t.category_id = c.id
      JOIN departments d ON t.department_id = d.id
      LEFT JOIN users u ON t.assigned_to = u.id
      JOIN users cu ON t.created_by = cu.id
+     LEFT JOIN tickets dup ON t.duplicate_of = dup.id
      WHERE t.id = ?`,
     [id]
   );
@@ -110,6 +112,13 @@ async function applyTicketUpdate(id, existing, { status, priority, assignedTo },
       updates.push("resolved_at = NULL", "closed_at = NULL");
     }
     historyEntries.push(["status", existing.status, status]);
+
+    // Reopening a ticket that was closed as a duplicate un-links it — otherwise the
+    // duplicate banner would keep pointing at the original with no way to clear it.
+    if (existing.duplicate_of && status !== "closed") {
+      updates.push("duplicate_of = NULL");
+      historyEntries.push(["duplicate_of", `T-${existing.duplicate_of}`, null]);
+    }
   }
 
   if (priority && priority !== existing.priority) {
@@ -297,7 +306,7 @@ router.patch("/bulk", asyncHandler(async (req, res) => {
 
   for (const id of ticketIds) {
     const [[existing]] = await pool.query(
-      "SELECT title, status, priority, assigned_to, created_by FROM tickets WHERE id = ?",
+      "SELECT title, status, priority, assigned_to, created_by, duplicate_of FROM tickets WHERE id = ?",
       [id]
     );
     if (!existing) {
@@ -327,7 +336,7 @@ router.patch("/:id", asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "assignedTo must be a valid id" });
   }
 
-  const [[existing]] = await pool.query("SELECT title, status, priority, assigned_to, created_by FROM tickets WHERE id = ?", [id]);
+  const [[existing]] = await pool.query("SELECT title, status, priority, assigned_to, created_by, duplicate_of FROM tickets WHERE id = ?", [id]);
   if (!existing) return res.status(404).json({ error: "Ticket not found" });
 
   const isAgentOrAdmin = role === "agent" || role === "admin";
@@ -345,6 +354,59 @@ router.patch("/:id", asyncHandler(async (req, res) => {
 
   const updated = await applyTicketUpdate(id, existing, { status, priority, assignedTo }, userId);
   res.json(updated);
+}));
+
+// POST /api/tickets/:id/duplicate — agent/admin only: closes this ticket as a duplicate
+// of another and links the two. Separate from PATCH /:id since it changes two things
+// atomically (status + duplicate_of) and needs its own validation and history wording.
+router.post("/:id/duplicate", asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { role, id: userId } = req.user;
+  const duplicateOfId = Number(req.body.duplicateOfId);
+
+  if (role !== "agent" && role !== "admin") {
+    return res.status(403).json({ error: "You don't have permission to do that" });
+  }
+  if (!isPositiveInt(duplicateOfId)) {
+    return res.status(400).json({ error: "duplicateOfId must be a valid ticket id" });
+  }
+  if (Number(id) === duplicateOfId) {
+    return res.status(400).json({ error: "A ticket can't be a duplicate of itself" });
+  }
+
+  const [[existing]] = await pool.query("SELECT title, status, created_by FROM tickets WHERE id = ?", [id]);
+  if (!existing) return res.status(404).json({ error: "Ticket not found" });
+
+  const [[original]] = await pool.query("SELECT id FROM tickets WHERE id = ?", [duplicateOfId]);
+  if (!original) return res.status(400).json({ error: "The original ticket doesn't exist" });
+
+  const displayId = `T-${id}`;
+  const originalDisplayId = `T-${duplicateOfId}`;
+
+  await pool.query(
+    "UPDATE tickets SET duplicate_of = ?, status = 'closed', resolved_at = NULL, closed_at = NOW() WHERE id = ?",
+    [duplicateOfId, id]
+  );
+
+  if (existing.status !== "closed") {
+    await pool.query(
+      "INSERT INTO ticket_history (ticket_id, changed_by, field, old_value, new_value) VALUES (?, ?, 'status', ?, 'closed')",
+      [id, userId, existing.status]
+    );
+  }
+  await pool.query(
+    "INSERT INTO ticket_history (ticket_id, changed_by, field, old_value, new_value) VALUES (?, ?, 'duplicate_of', NULL, ?)",
+    [id, userId, originalDisplayId]
+  );
+
+  if (existing.created_by !== userId) {
+    await createNotification(existing.created_by, id, "duplicate", `${displayId} was closed as a duplicate of ${originalDisplayId}`);
+  }
+
+  emitToStaff("ticket:changed", { id: Number(id) });
+  emitToTicket(id, "ticket:changed", { id: Number(id) });
+
+  res.json(await getTicketDetail(id));
 }));
 
 // POST /api/tickets/:id/comments — add a comment

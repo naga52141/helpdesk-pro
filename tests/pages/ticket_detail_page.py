@@ -118,3 +118,30 @@ class TicketDetailPage(BasePage):
     def click_live_update_refresh(self):
         self.find_clickable(By.ID, "live-update-refresh-btn").click()
         return self
+
+    def duplicate_banner_visible(self):
+        return self.find(By.ID, "duplicate-banner").is_displayed()
+
+    def duplicate_banner_text(self):
+        return self.wait_until_visible(By.ID, "duplicate-banner").text
+
+    def duplicate_of_link_href(self):
+        return self.find(By.ID, "duplicate-of-link").get_attribute("href")
+
+    def duplicate_controls_visible(self):
+        return self.find(By.ID, "duplicate-controls").is_displayed()
+
+    def mark_as_duplicate(self, original_ticket_id):
+        self.attempt_mark_as_duplicate(original_ticket_id)
+        WebDriverWait(self.driver, 10).until(lambda d: self.duplicate_banner_visible())
+        return self
+
+    def attempt_mark_as_duplicate(self, original_ticket_id):
+        """Like mark_as_duplicate, but doesn't assume success — for tests asserting a
+        validation error, where the banner is expected to never appear."""
+        self.find(By.ID, "duplicate-of-input").send_keys(str(original_ticket_id))
+        self.find_clickable(By.ID, "mark-duplicate-btn").click()
+        return self
+
+    def duplicate_error_text(self):
+        return self.wait_until_visible(By.ID, "duplicate-error").text

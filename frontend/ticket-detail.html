@@ -80,6 +80,10 @@
         </div>
       </div>
 
+      <div id="duplicate-banner" class="duplicate-banner" hidden>
+        <span>This ticket was closed as a duplicate of <a id="duplicate-of-link" href="#"></a>.</span>
+      </div>
+
       <div class="detail-grid">
         <div class="detail-main-col">
           <section class="recent-section detail-card">
@@ -159,6 +163,15 @@
             <div class="quick-actions">
               <button type="button" id="resolve-btn" class="btn-secondary">Mark Resolved</button>
               <button type="button" id="close-btn" class="btn-secondary">Close Ticket</button>
+            </div>
+
+            <div id="duplicate-controls">
+              <label for="duplicate-of-input">Mark as duplicate of</label>
+              <div class="control-row">
+                <input type="number" id="duplicate-of-input" min="1" placeholder="Ticket # e.g. 12" />
+                <button type="button" id="mark-duplicate-btn" class="btn-secondary">Mark duplicate</button>
+              </div>
+              <p class="form-error" id="duplicate-error" hidden></p>
             </div>
           </section>
 

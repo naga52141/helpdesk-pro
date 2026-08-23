@@ -32,12 +32,14 @@ const FIELD_LABELS = {
   status: "status",
   priority: "priority",
   assigned_to: "assignment",
+  duplicate_of: "duplicate link",
 };
 
 function formatHistoryValue(field, value) {
   if (field === "status") return statusText(value);
   if (field === "priority") return capitalize(value);
-  return value; // assigned_to already stores names ("Unassigned" or an agent's name)
+  if (value === null || value === undefined) return "None";
+  return value; // assigned_to/duplicate_of already store display-ready strings
 }
 
 function statusText(status) {
@@ -164,6 +166,11 @@ function runDetailPage(initialTicket, agents, cannedResponses) {
     csatResult: document.getElementById("csat-result"),
     csatResultValue: document.getElementById("csat-result-value"),
     csatResultComment: document.getElementById("csat-result-comment"),
+    duplicateBanner: document.getElementById("duplicate-banner"),
+    duplicateOfLink: document.getElementById("duplicate-of-link"),
+    duplicateControls: document.getElementById("duplicate-controls"),
+    duplicateOfInput: document.getElementById("duplicate-of-input"),
+    duplicateError: document.getElementById("duplicate-error"),
   };
 
   agents.forEach((agent) => {
@@ -238,6 +245,21 @@ function runDetailPage(initialTicket, agents, cannedResponses) {
     }
 
     renderCsat();
+    renderDuplicateStatus();
+  }
+
+  function renderDuplicateStatus() {
+    if (ticket.duplicateOfId) {
+      els.duplicateBanner.hidden = false;
+      els.duplicateOfLink.textContent = `T-${ticket.duplicateOfId}: ${ticket.duplicateOfTitle}`;
+      els.duplicateOfLink.href = `ticket-detail.html?id=${ticket.duplicateOfId}`;
+    } else {
+      els.duplicateBanner.hidden = true;
+    }
+
+    if (els.duplicateControls) {
+      els.duplicateControls.hidden = Boolean(ticket.duplicateOfId);
+    }
   }
 
   function renderCsat() {
@@ -364,6 +386,30 @@ function runDetailPage(initialTicket, agents, cannedResponses) {
 
   els.reopenBtn.addEventListener("click", () => {
     patchTicket({ status: "in-progress" });
+  });
+
+  document.getElementById("mark-duplicate-btn")?.addEventListener("click", async () => {
+    els.duplicateError.hidden = true;
+    const duplicateOfId = Number(els.duplicateOfInput.value);
+
+    if (!duplicateOfId || duplicateOfId <= 0) {
+      els.duplicateError.textContent = "Enter a valid ticket number";
+      els.duplicateError.hidden = false;
+      return;
+    }
+
+    try {
+      ticket = await apiFetch(`/tickets/${ticket.id}/duplicate`, {
+        method: "POST",
+        body: JSON.stringify({ duplicateOfId }),
+      });
+      els.duplicateOfInput.value = "";
+      renderDynamicFields();
+      renderActivity();
+    } catch (err) {
+      els.duplicateError.textContent = err.message;
+      els.duplicateError.hidden = false;
+    }
   });
 
   let selectedRating = null;
