@@ -460,6 +460,73 @@
   vertical-align: middle;
 }
 
+.row-focused {
+  background: var(--color-highlight-bg);
+}
+
+.shortcuts-help-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.shortcuts-help-overlay:not([hidden]) {
+  display: flex;
+}
+
+.shortcuts-help-panel {
+  background: var(--color-card);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.shortcuts-help-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.shortcuts-help-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.shortcuts-help-close {
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--color-muted);
+  line-height: 1;
+  padding: 0;
+}
+
+.shortcuts-help-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.shortcuts-help-list dt {
+  font-weight: 600;
+  font-family: monospace;
+  color: var(--color-primary);
+}
+
+.shortcuts-help-list dd {
+  margin: 0;
+  color: var(--color-text);
+}
+
 .ticket-id {
   font-weight: 600;
   color: var(--color-primary);

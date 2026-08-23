@@ -95,3 +95,9 @@ class TicketsPage(BasePage):
     def export_csv(self):
         self.find_clickable(By.ID, "export-csv-btn").click()
         return self
+
+    def focused_row_index(self):
+        return self.driver.execute_script(
+            "return Array.from(document.querySelectorAll('#tickets-body tr'))"
+            ".findIndex((r) => r.classList.contains('row-focused'));"
+        )

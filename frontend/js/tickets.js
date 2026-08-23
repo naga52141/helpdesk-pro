@@ -36,6 +36,7 @@ const bulkError = document.getElementById("bulk-error");
 
 const selectedIds = new Set();
 let currentTickets = [];
+let focusedRowIndex = -1;
 
 function buildFilterQuery() {
   const params = new URLSearchParams();
@@ -77,6 +78,7 @@ function renderRows(tickets) {
   selectedIds.clear();
   if (selectAllCheckbox) selectAllCheckbox.checked = false;
   updateBulkBar();
+  focusedRowIndex = -1;
 
   if (tickets.length === 0) {
     const row = document.createElement("tr");
@@ -237,6 +239,45 @@ exportCsvBtn.addEventListener("click", () => {
   link.download = `tickets-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
+});
+
+function selectableRows() {
+  return Array.from(ticketsBody.querySelectorAll("tr")).filter((row) => !row.classList.contains("empty-row"));
+}
+
+function updateRowFocus() {
+  selectableRows().forEach((row, i) => row.classList.toggle("row-focused", i === focusedRowIndex));
+}
+
+const shortcutsHelp = initShortcutsHelp([
+  { keys: "j / k", description: "Move the selection down / up" },
+  { keys: "Enter", description: "Open the selected ticket" },
+  { keys: "/", description: "Focus the search box" },
+  { keys: "?", description: "Show this help" },
+]);
+document.getElementById("shortcuts-help-btn")?.addEventListener("click", () => shortcutsHelp.show());
+
+document.addEventListener("keydown", (event) => {
+  if (isTypingContext(event.target)) return;
+
+  const rows = selectableRows();
+
+  if (event.key === "j") {
+    event.preventDefault();
+    focusedRowIndex = Math.min(focusedRowIndex + 1, rows.length - 1);
+    updateRowFocus();
+    rows[focusedRowIndex]?.scrollIntoView({ block: "nearest" });
+  } else if (event.key === "k") {
+    event.preventDefault();
+    focusedRowIndex = Math.max(focusedRowIndex - 1, 0);
+    updateRowFocus();
+    rows[focusedRowIndex]?.scrollIntoView({ block: "nearest" });
+  } else if (event.key === "Enter" && focusedRowIndex >= 0 && rows[focusedRowIndex]) {
+    rows[focusedRowIndex].querySelector(".ticket-id")?.click();
+  } else if (event.key === "/") {
+    event.preventDefault();
+    searchInput.focus();
+  }
 });
 
 const session = requireSession();

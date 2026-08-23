@@ -89,6 +89,20 @@ document.getElementById("live-update-refresh-btn").addEventListener("click", () 
   window.location.reload();
 });
 
+const shortcutsHelp = initShortcutsHelp([
+  { keys: "r", description: "Focus the comment box" },
+  { keys: "?", description: "Show this help" },
+]);
+document.getElementById("shortcuts-help-btn")?.addEventListener("click", () => shortcutsHelp.show());
+
+document.addEventListener("keydown", (event) => {
+  if (isTypingContext(event.target)) return;
+  if (event.key === "r") {
+    event.preventDefault();
+    document.getElementById("comment-text")?.focus();
+  }
+});
+
 init();
 
 async function init() {
