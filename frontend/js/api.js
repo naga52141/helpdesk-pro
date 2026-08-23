@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:4000/api";
+const API_BASE = `${HDPRO_BACKEND_URL}/api`;
 
 async function apiFetch(path, options = {}) {
   const session = getSession();

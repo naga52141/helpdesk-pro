@@ -1,0 +1,34 @@
+services:
+  - name: helpdeskpro-backend
+    type: web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://helpdeskpro-frontend.onrender.com
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+
+  - name: helpdeskpro-frontend
+    type: web
+    runtime: static
+    staticPublishPath: ./frontend
