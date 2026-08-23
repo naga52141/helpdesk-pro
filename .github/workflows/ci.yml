@@ -48,6 +48,10 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      - name: Run backend unit tests (Jest)
+        working-directory: backend
+        run: npm test
+
       - name: Install Python test dependencies
         working-directory: tests
         run: pip install -r requirements.txt

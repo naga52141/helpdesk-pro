@@ -5,6 +5,12 @@ const { emitToStaff, emitToTicket } = require("../socket");
 const SYSTEM_USER_EMAIL = "system@helpdeskpro.local";
 const ESCALATION = { low: "medium", medium: "high", high: "critical" };
 
+// Pulled out as a pure function (no DB access) so it's unit-testable in isolation —
+// the rest of this file only makes sense against a real database.
+function nextPriority(currentPriority) {
+  return ESCALATION[currentPriority] || null;
+}
+
 async function getSystemUserId() {
   const [[user]] = await pool.query("SELECT id FROM users WHERE email = ?", [SYSTEM_USER_EMAIL]);
   return user ? user.id : null;
@@ -51,7 +57,7 @@ async function checkSlaBreaches() {
   );
 
   for (const ticket of breached) {
-    const newPriority = ESCALATION[ticket.priority];
+    const newPriority = nextPriority(ticket.priority);
 
     await pool.query("UPDATE tickets SET priority = ? WHERE id = ?", [newPriority, ticket.id]);
     await pool.query(
@@ -73,4 +79,4 @@ async function checkSlaBreaches() {
   }
 }
 
-module.exports = { checkSlaWarnings, checkSlaBreaches };
+module.exports = { checkSlaWarnings, checkSlaBreaches, nextPriority };
