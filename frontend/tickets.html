@@ -100,6 +100,15 @@
       <button type="button" id="shortcuts-help-btn" class="btn-secondary" title="Keyboard shortcuts">⌨ Shortcuts</button>
     </section>
 
+    <section class="saved-views-bar">
+      <div id="saved-views-list" class="saved-views-list"></div>
+      <form id="save-view-form" class="save-view-form">
+        <input type="text" id="save-view-name-input" placeholder="Save current filters as..." maxlength="60" required />
+        <button type="submit" class="btn-secondary btn-tiny">Save view</button>
+      </form>
+      <p id="saved-view-error" class="form-error" hidden></p>
+    </section>
+
     <div id="bulk-actions-bar" class="bulk-actions-bar staff-only" hidden>
       <span id="bulk-selected-count"></span>
 

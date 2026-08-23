@@ -101,3 +101,47 @@ class TicketsPage(BasePage):
             "return Array.from(document.querySelectorAll('#tickets-body tr'))"
             ".findIndex((r) => r.classList.contains('row-focused'));"
         )
+
+    def set_status_filter(self, value):
+        Select(self.find(By.ID, "filter-status")).select_by_value(value)
+        return self
+
+    def set_priority_filter(self, value):
+        Select(self.find(By.ID, "filter-priority")).select_by_value(value)
+        return self
+
+    def status_filter_value(self):
+        return Select(self.find(By.ID, "filter-status")).first_selected_option.get_attribute("value")
+
+    def priority_filter_value(self):
+        return Select(self.find(By.ID, "filter-priority")).first_selected_option.get_attribute("value")
+
+    def clear_filters(self):
+        self.find_clickable(By.ID, "clear-filters").click()
+        return self
+
+    def saved_view_names(self):
+        return [b.text for b in self.driver.find_elements(By.CSS_SELECTOR, ".saved-view-apply")]
+
+    def save_current_view(self, name):
+        self.find(By.ID, "save-view-name-input").send_keys(name)
+        self.find_clickable(By.CSS_SELECTOR, "#save-view-form button[type=submit]").click()
+        WebDriverWait(self.driver, 10).until(lambda d: name in self.saved_view_names())
+        return self
+
+    def save_view_error_text(self):
+        return self.wait_until_visible(By.ID, "saved-view-error").text
+
+    def apply_saved_view(self, name):
+        self.driver.find_element(
+            By.XPATH, f"//button[@class='saved-view-apply' and text()='{name}']"
+        ).click()
+        return self
+
+    def delete_saved_view(self, name):
+        chip = self.driver.find_element(
+            By.XPATH, f"//span[contains(@class,'saved-view-chip')][.//button[text()='{name}']]"
+        )
+        chip.find_element(By.CSS_SELECTOR, ".saved-view-delete").click()
+        WebDriverWait(self.driver, 10).until(lambda d: name not in self.saved_view_names())
+        return self

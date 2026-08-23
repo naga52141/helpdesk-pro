@@ -19,6 +19,10 @@ const categoryFilter = document.getElementById("filter-category");
 const agentFilter = document.getElementById("filter-agent");
 const clearBtn = document.getElementById("clear-filters");
 const exportCsvBtn = document.getElementById("export-csv-btn");
+const savedViewsList = document.getElementById("saved-views-list");
+const saveViewForm = document.getElementById("save-view-form");
+const saveViewNameInput = document.getElementById("save-view-name-input");
+const savedViewError = document.getElementById("saved-view-error");
 const ticketsBody = document.getElementById("tickets-body");
 const ticketsTitle = document.getElementById("tickets-title");
 const ticketsCount = document.getElementById("tickets-count");
@@ -208,6 +212,88 @@ clearBtn.addEventListener("click", () => {
   render();
 });
 
+// ---------- Saved Views ----------
+
+function currentFilterValues() {
+  return {
+    search: searchInput.value.trim(),
+    status: statusFilter.value,
+    priority: priorityFilter.value,
+    category: categoryFilter.value,
+    assignedAgent: agentFilter.value,
+  };
+}
+
+function applyFilterValues(filters) {
+  searchInput.value = filters.search || "";
+  statusFilter.value = filters.status || "all";
+  priorityFilter.value = filters.priority || "all";
+  categoryFilter.value = filters.category || "all";
+  agentFilter.value = filters.assignedAgent || "all";
+  render();
+}
+
+function renderSavedViewChip(view) {
+  const chip = document.createElement("span");
+  chip.className = "saved-view-chip";
+
+  const applyBtn = document.createElement("button");
+  applyBtn.type = "button";
+  applyBtn.className = "saved-view-apply";
+  applyBtn.dataset.viewId = view.id;
+  applyBtn.textContent = view.name;
+  applyBtn.addEventListener("click", () => applyFilterValues(view.filters));
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "saved-view-delete";
+  deleteBtn.dataset.viewId = view.id;
+  deleteBtn.setAttribute("aria-label", `Delete view ${view.name}`);
+  deleteBtn.textContent = "×";
+  deleteBtn.addEventListener("click", async () => {
+    try {
+      await apiFetch(`/saved-views/${view.id}`, { method: "DELETE" });
+      loadSavedViews();
+    } catch (err) {
+      savedViewError.textContent = err.message;
+      savedViewError.hidden = false;
+    }
+  });
+
+  chip.appendChild(applyBtn);
+  chip.appendChild(deleteBtn);
+  return chip;
+}
+
+async function loadSavedViews() {
+  try {
+    const views = await apiFetch("/saved-views");
+    savedViewsList.innerHTML = "";
+    views.forEach((view) => savedViewsList.appendChild(renderSavedViewChip(view)));
+  } catch (err) {
+    savedViewError.textContent = err.message;
+    savedViewError.hidden = false;
+  }
+}
+
+saveViewForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  savedViewError.hidden = true;
+  const name = saveViewNameInput.value.trim();
+
+  try {
+    await apiFetch("/saved-views", {
+      method: "POST",
+      body: JSON.stringify({ name, filters: currentFilterValues() }),
+    });
+    saveViewNameInput.value = "";
+    loadSavedViews();
+  } catch (err) {
+    savedViewError.textContent = err.message;
+    savedViewError.hidden = false;
+  }
+});
+
 // Wraps a field in quotes (doubling any embedded quotes) only when it actually needs
 // it — a comma, quote, or newline in the value would otherwise corrupt the CSV shape.
 function csvEscape(value) {
@@ -285,6 +371,7 @@ const isStaff = session.user.role === "agent" || session.user.role === "admin";
 ticketsTitle.textContent = session.user.role === "user" ? "My tickets" : "All tickets";
 render();
 loadBulkAssignOptions();
+loadSavedViews();
 
 // Live-refresh the queue when any ticket changes — staff room membership means users
 // simply won't receive this event, so no extra role check is needed here.
