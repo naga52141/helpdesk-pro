@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const { logAudit } = require("../utils/auditLog");
 
 const router = express.Router();
 router.use(requireAuth, requireRole("admin"));
@@ -31,10 +32,11 @@ router.patch("/:id", asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "You can't change your own role" });
   }
 
-  const [[existing]] = await pool.query("SELECT id FROM users WHERE id = ?", [id]);
+  const [[existing]] = await pool.query("SELECT id, name, role FROM users WHERE id = ?", [id]);
   if (!existing) return res.status(404).json({ error: "User not found" });
 
   await pool.query("UPDATE users SET role = ? WHERE id = ?", [role, id]);
+  await logAudit(req.user.id, "role_change", "user", Number(id), `${existing.name}: ${existing.role} -> ${role}`);
 
   const [[updated]] = await pool.query(
     `SELECT u.id, u.name, u.email, u.role, d.name AS department, u.created_at AS createdAt

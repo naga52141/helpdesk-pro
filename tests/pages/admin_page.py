@@ -156,3 +156,16 @@ class AdminPage(BasePage):
         row.find_element(By.CSS_SELECTOR, '[data-action="delete-canned"]').click()
         WebDriverWait(self.driver, 10).until(lambda d: title not in self.canned_response_titles())
         return self
+
+    def audit_log_row_texts(self):
+        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.ID, "audit-log-table-body")))
+        return [r.text for r in self.driver.find_elements(By.CSS_SELECTOR, "#audit-log-table-body tr")]
+
+    def wait_for_audit_entry(self, needle, timeout=10):
+        # loadAuditLog() only fetches once, at page load — it isn't re-triggered by other
+        # admin actions like loadCategories() etc. are. Callers must call .load() again
+        # after the action being asserted on, then switch_tab("audit-log") before this.
+        WebDriverWait(self.driver, timeout).until(
+            lambda d: any(needle in text for text in self.audit_log_row_texts())
+        )
+        return self

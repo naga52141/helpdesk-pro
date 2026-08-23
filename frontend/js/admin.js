@@ -15,6 +15,7 @@ if (session.user.role !== "admin") {
   loadDepartments();
   loadSlaRules();
   loadCannedResponses();
+  loadAuditLog();
 }
 
 function initTabs() {
@@ -330,3 +331,28 @@ document.getElementById("canned-response-add-form").addEventListener("submit", a
     errEl.hidden = false;
   }
 });
+
+// ---------- Audit Log ----------
+
+async function loadAuditLog() {
+  try {
+    const entries = await apiFetch("/audit-log");
+    const body = document.getElementById("audit-log-table-body");
+    body.innerHTML = "";
+
+    entries.forEach((entry) => {
+      const row = document.createElement("tr");
+      const target = entry.targetType + (entry.targetId ? ` #${entry.targetId}` : "");
+      row.innerHTML = `
+        <td>${new Date(entry.createdAt).toLocaleString()}</td>
+        <td>${entry.actor}</td>
+        <td>${entry.action}</td>
+        <td>${target}</td>
+        <td>${entry.details || ""}</td>
+      `;
+      body.appendChild(row);
+    });
+  } catch (err) {
+    showError(err.message);
+  }
+}

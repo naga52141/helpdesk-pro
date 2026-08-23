@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const { logAudit } = require("../utils/auditLog");
 
 const router = express.Router();
 router.use(requireAuth, requireRole("agent", "admin"));
@@ -34,6 +35,8 @@ router.patch("/:priority", requireRole("admin"), asyncHandler(async (req, res) =
     [response, resolution, priority]
   );
   if (result.affectedRows === 0) return res.status(404).json({ error: "Unknown priority" });
+
+  await logAudit(req.user.id, "sla_rule_update", "sla_rule", null, `${priority}: response ${response}h, resolution ${resolution}h`);
 
   res.json({ priority, responseHours: response, resolutionHours: resolution });
 }));

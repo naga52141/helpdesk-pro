@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const { logAudit } = require("../utils/auditLog");
 
 const router = express.Router();
 const adminOnly = [requireAuth, requireRole("admin")];
@@ -30,6 +31,7 @@ function registerNameTableRoutes(path, table, label) {
 
     try {
       const [result] = await pool.query(`INSERT INTO ${table} (name) VALUES (?)`, [name]);
+      await logAudit(req.user.id, "create", label.toLowerCase(), result.insertId, name);
       res.status(201).json({ id: result.insertId, name });
     } catch (err) {
       if (err.code === "ER_DUP_ENTRY") {
@@ -43,11 +45,12 @@ function registerNameTableRoutes(path, table, label) {
     const name = (req.body.name || "").trim();
     if (!name) return res.status(400).json({ error: `${label} name is required` });
 
-    const [[existing]] = await pool.query(`SELECT id FROM ${table} WHERE id = ?`, [req.params.id]);
+    const [[existing]] = await pool.query(`SELECT id, name FROM ${table} WHERE id = ?`, [req.params.id]);
     if (!existing) return res.status(404).json({ error: `${label} not found` });
 
     try {
       await pool.query(`UPDATE ${table} SET name = ? WHERE id = ?`, [name, req.params.id]);
+      await logAudit(req.user.id, "rename", label.toLowerCase(), Number(req.params.id), `${existing.name} -> ${name}`);
       res.json({ id: Number(req.params.id), name });
     } catch (err) {
       if (err.code === "ER_DUP_ENTRY") {
@@ -58,11 +61,12 @@ function registerNameTableRoutes(path, table, label) {
   }));
 
   router.delete(`${path}/:id`, ...adminOnly, asyncHandler(async (req, res) => {
-    const [[existing]] = await pool.query(`SELECT id FROM ${table} WHERE id = ?`, [req.params.id]);
+    const [[existing]] = await pool.query(`SELECT id, name FROM ${table} WHERE id = ?`, [req.params.id]);
     if (!existing) return res.status(404).json({ error: `${label} not found` });
 
     try {
       await pool.query(`DELETE FROM ${table} WHERE id = ?`, [req.params.id]);
+      await logAudit(req.user.id, "delete", label.toLowerCase(), Number(req.params.id), existing.name);
       res.status(204).end();
     } catch (err) {
       if (err.code === "ER_ROW_IS_REFERENCED_2" || err.code === "ER_ROW_IS_REFERENCED") {

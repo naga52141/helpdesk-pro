@@ -71,6 +71,7 @@
         <button type="button" class="admin-tab" data-tab="departments" role="tab" id="tab-departments" aria-selected="false" aria-controls="panel-departments">Departments</button>
         <button type="button" class="admin-tab" data-tab="sla" role="tab" id="tab-sla" aria-selected="false" aria-controls="panel-sla">SLA Rules</button>
         <button type="button" class="admin-tab" data-tab="canned-responses" role="tab" id="tab-canned-responses" aria-selected="false" aria-controls="panel-canned-responses">Canned Responses</button>
+        <button type="button" class="admin-tab" data-tab="audit-log" role="tab" id="tab-audit-log" aria-selected="false" aria-controls="panel-audit-log">Audit Log</button>
       </div>
 
       <section class="admin-panel" id="panel-users" role="tabpanel" aria-labelledby="tab-users">
@@ -146,6 +147,24 @@
           <table class="chart-data-table" id="canned-responses-table">
             <thead><tr><th>Title</th><th>Body</th><th></th></tr></thead>
             <tbody id="canned-responses-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel" id="panel-audit-log" role="tabpanel" aria-labelledby="tab-audit-log" hidden>
+        <p class="text-muted">Role changes, and category/department/SLA-rule edits — most recent first.</p>
+        <div class="table-wrap">
+          <table class="chart-data-table" id="audit-log-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Actor</th>
+                <th>Action</th>
+                <th>Target</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="audit-log-table-body"></tbody>
           </table>
         </div>
       </section>

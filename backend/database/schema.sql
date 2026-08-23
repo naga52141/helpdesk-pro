@@ -135,3 +135,16 @@ CREATE TABLE canned_responses (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (created_by) REFERENCES users(id)
 );
+
+-- Security/compliance trail for admin-level actions (role changes, category/department/
+-- SLA-rule edits) — distinct from ticket_history, which is per-ticket, not per-admin-action.
+CREATE TABLE audit_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  actor_id INT NOT NULL,
+  action VARCHAR(100) NOT NULL,
+  target_type VARCHAR(50) NOT NULL,
+  target_id INT NULL,
+  details VARCHAR(255) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (actor_id) REFERENCES users(id)
+);
