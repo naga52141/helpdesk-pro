@@ -27,7 +27,13 @@ function initTabs() {
       tab.classList.add("active");
       tab.setAttribute("aria-selected", "true");
       document.querySelectorAll(".admin-panel").forEach((p) => (p.hidden = true));
-      document.getElementById(`panel-${tab.dataset.tab}`).hidden = false;
+      const panel = document.getElementById(`panel-${tab.dataset.tab}`);
+      panel.hidden = false;
+
+      // Canned response bodies were auto-sized while this panel was still hidden (display:
+      // none elements report scrollHeight 0), so the very first resize locked in a
+      // collapsed height — redo it now that the panel actually has layout.
+      panel.querySelectorAll("textarea[data-body-id]").forEach((ta) => autoResizeTextarea(ta));
     });
   });
 }
@@ -230,6 +236,13 @@ async function loadSlaRules() {
 
 // ---------- Canned Responses ----------
 
+// Grows a textarea to fit its content as the user types, instead of clipping long
+// responses behind a fixed 2-row box with an easy-to-miss scrollbar.
+function autoResizeTextarea(el) {
+  el.style.height = "auto";
+  el.style.height = `${el.scrollHeight}px`;
+}
+
 async function loadCannedResponses() {
   try {
     const responses = await apiFetch("/canned-responses");
@@ -249,6 +262,11 @@ async function loadCannedResponses() {
         </td>
       `;
       body.appendChild(row);
+    });
+
+    body.querySelectorAll("textarea[data-body-id]").forEach((textarea) => {
+      autoResizeTextarea(textarea);
+      textarea.addEventListener("input", () => autoResizeTextarea(textarea));
     });
 
     body.querySelectorAll('[data-action="save-canned"]').forEach((btn) => {
@@ -289,20 +307,23 @@ async function loadCannedResponses() {
   }
 }
 
+const cannedResponseBodyInput = document.getElementById("canned-response-body-input");
+cannedResponseBodyInput.addEventListener("input", () => autoResizeTextarea(cannedResponseBodyInput));
+
 document.getElementById("canned-response-add-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const titleInput = document.getElementById("canned-response-title-input");
-  const bodyInput = document.getElementById("canned-response-body-input");
   const errEl = document.getElementById("canned-response-error");
   errEl.hidden = true;
 
   try {
     await apiFetch("/canned-responses", {
       method: "POST",
-      body: JSON.stringify({ title: titleInput.value.trim(), body: bodyInput.value.trim() }),
+      body: JSON.stringify({ title: titleInput.value.trim(), body: cannedResponseBodyInput.value.trim() }),
     });
     titleInput.value = "";
-    bodyInput.value = "";
+    cannedResponseBodyInput.value = "";
+    autoResizeTextarea(cannedResponseBodyInput);
     loadCannedResponses();
   } catch (err) {
     errEl.textContent = err.message;

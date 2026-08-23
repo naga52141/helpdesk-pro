@@ -45,6 +45,8 @@
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
 }
 
 .admin-add-form-stacked {
@@ -64,7 +66,10 @@
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
   resize: vertical;
+  overflow: hidden;
 }
 
 .canned-response-body-cell textarea {
@@ -75,7 +80,10 @@
   border-radius: 6px;
   font-size: 13px;
   font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
   resize: vertical;
+  overflow: hidden;
 }
 
 .row-edit {
@@ -92,6 +100,8 @@
   border-radius: 6px;
   font-size: 13px;
   font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
 }
 
 .row-edit input[type="number"] {
@@ -101,6 +111,31 @@
   border-radius: 6px;
   font-size: 13px;
   font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+/* Bare inputs placed directly in a table cell without a .row-edit wrapper — the SLA
+   rules hour fields and the canned-response title field. */
+.chart-data-table td input[type="text"],
+.chart-data-table td input[type="number"] {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+.chart-data-table td input[type="text"] {
+  width: 100%;
+  min-width: 160px;
+}
+
+.chart-data-table td input[type="number"] {
+  width: 80px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -116,6 +151,18 @@
   border-radius: 6px;
   font-size: 12px;
   font-family: inherit;
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+.admin-add-form input:focus,
+.admin-add-form-stacked textarea:focus,
+.row-edit input:focus,
+.chart-data-table td input:focus,
+.role-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .self-row-note {

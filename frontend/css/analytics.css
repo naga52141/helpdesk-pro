@@ -234,26 +234,6 @@
   flex-shrink: 0;
 }
 
-.chart-data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.chart-data-table th {
-  text-align: left;
-  color: var(--viz-text-secondary);
-  font-weight: 600;
-  padding: 8px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.chart-data-table td {
-  padding: 8px;
-  border-bottom: 1px solid var(--color-border);
-  font-variant-numeric: tabular-nums;
-}
-
 .agent-table td.agent-name-cell {
   font-variant-numeric: normal;
   font-weight: 600;
